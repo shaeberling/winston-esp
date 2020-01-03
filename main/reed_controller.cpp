@@ -27,7 +27,8 @@ bool ReedController::is_closed(int idx) {
 void ReedController::initPin(int n) {
   ESP_LOGI(TAG, "Initializing ping %d as REED.", n);
   gpio_config_t io_conf;
-  // Interrupt of rising edge.
+  // No interrupt for now.
+  // TODO: Add interrupt logic once we want to publish changes.
   io_conf.intr_type = GPIO_INTR_DISABLE;
   // Bit mask of the pins.
   io_conf.pin_bit_mask = 1ULL<<n;
