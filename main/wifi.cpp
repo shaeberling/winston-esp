@@ -16,17 +16,15 @@
 
 namespace {
 
-#define MAXIMUM_RETRY  2
+#define MAXIMUM_RETRY  5
 
 /* FreeRTOS event group to signal when we are connected*/
 static EventGroupHandle_t s_wifi_event_group;
 
 /* The event group allows multiple bits for each event, but we only care about one event 
  * - are we connected to the AP with an IP? */
-const int WIFI_CONNECTED_BIT = BIT0;
-
+static const int WIFI_CONNECTED_BIT = BIT0;
 static const char *TAG = "winston-wifi";
-
 static int s_retry_num = 0;
 
 static void event_handler(void* arg, esp_event_base_t event_base, 

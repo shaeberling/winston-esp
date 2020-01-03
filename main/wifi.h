@@ -1,12 +1,12 @@
 #pragma once
 
-#include <string>
-
 #ifndef _WINSTON_WIFI_H_
 #define _WINSTON_WIFI_H_
 
+#include <string>
+
 class Wifi {
-public:
+ public:
   void connect(const std::string& ssid, const std::string& password);
 };
 
