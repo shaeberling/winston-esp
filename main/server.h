@@ -22,7 +22,7 @@ class Server {
 
   static esp_err_t io_get_handler(httpd_req_t *req);
   esp_err_t handle_io(httpd_req_t *req);
-  bool get_reed_status(const std::string& req);
+  bool is_reed_closed(const std::string& req);
 };
 
 #endif /* _WINSTON_SERVER_H_ */

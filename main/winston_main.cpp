@@ -5,6 +5,8 @@
    CONDITIONS OF ANY KIND, either express or implied.
 */
 #include <string>
+#include <vector>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
@@ -74,7 +76,10 @@ void app_main(void) {
   ESP_ERROR_CHECK(esp_event_handler_register(WINSTON_EVENT, WIFI_CONNECTED,
                                              &event_handler, NULL));
 
-  reed_controller = new ReedController();
+  // TODO: Make this configurable.
+  // A single reed relay on GPIO pin 13.
+  std::vector<int> reed_mapping = { 13 };
+  reed_controller = new ReedController(reed_mapping);
 
   initNvs();
   ESP_LOGI(TAG, "NVS initialized. Connecting to Wifi...");

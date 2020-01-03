@@ -68,8 +68,8 @@ esp_err_t Server::handle_io(httpd_req_t *req) {
   std::string requestStr((const char*)(req->uri + sizeof("/io") - 1));
   if (requestStr.rfind("/reed/", 0) == 0) {
     std::string req_data((const char*)(req->uri + sizeof("/io/reed/") - 1));
-    bool status = get_reed_status(req_data);
-    httpd_resp_send(req, status ? "1" : "0", 1);
+    bool closed = is_reed_closed(req_data);
+    httpd_resp_send(req, closed ? "1" : "0", 1);
   } else {
     const char* resp_str = "Hello, Winston ESP here.";
     httpd_resp_send(req, resp_str, strlen(resp_str));    
@@ -79,7 +79,7 @@ esp_err_t Server::handle_io(httpd_req_t *req) {
 
 
 // private
-bool Server::get_reed_status(const std::string& req) {
+bool Server::is_reed_closed(const std::string& req) {
   ESP_LOGI(TAG, "Geet reed status for '%s'", req.c_str());
   char* pEnd = NULL;
   int reed_idx = strtod(req.c_str(), &pEnd);
@@ -87,5 +87,5 @@ bool Server::get_reed_status(const std::string& req) {
     ESP_LOGW(TAG, "Invalid reed index.");
     return false;
   }
-  return reed_controller_->status(reed_idx);
+  return reed_controller_->is_closed(reed_idx);
 }
