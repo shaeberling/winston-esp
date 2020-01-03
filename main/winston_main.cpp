@@ -13,6 +13,7 @@
 #include "nvs_flash.h"
 
 #include "events.h"
+#include "reed_controller.h"
 #include "server.h"
 #include "wifi.h"
 
@@ -25,13 +26,14 @@ static const char *TAG = "winston-main";
 ESP_EVENT_DEFINE_BASE(WINSTON_EVENT);
 namespace {
 
-Wifi* wifi;
+ReedController* reed_controller;
 Server* server;
+Wifi* wifi;
 
 /** Called when WIFI connected (we have an IP). */
 void onWifiConnected() {
   ESP_LOGI(TAG, "Wifi connected. Starting webserver ...");
-  server = new Server(SERVER_PORT);
+  server = new Server(SERVER_PORT, reed_controller);
   if (server->start()) {
     ESP_LOGI(TAG, "Webserver successfully started.");
   } else {
@@ -71,6 +73,8 @@ void app_main(void) {
 
   ESP_ERROR_CHECK(esp_event_handler_register(WINSTON_EVENT, WIFI_CONNECTED,
                                              &event_handler, NULL));
+
+  reed_controller = new ReedController();
 
   initNvs();
   ESP_LOGI(TAG, "NVS initialized. Connecting to Wifi...");
