@@ -14,25 +14,28 @@
 
 #include "wifi.h"
 
-#define WIFI_SSID      ""  // FIXME: Set
-#define WIFI_PASS      ""  // FIXME: Set
+#define WIFI_SSID CONFIG_ESP_WIFI_SSID
+#define WIFI_PASS CONFIG_ESP_WIFI_PASSWORD
 
 static const char *TAG = "winston-main";
 
 extern "C" {
-  void app_main(void);
+
+//Initialize NVS
+void initNvs() {
+  esp_err_t ret = nvs_flash_init();
+  if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    ESP_ERROR_CHECK(nvs_flash_erase());
+    ret = nvs_flash_init();
+  }
+  ESP_ERROR_CHECK(ret);  
 }
 
 void app_main(void) {
-    //Initialize NVS
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-      ESP_ERROR_CHECK(nvs_flash_erase());
-      ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
-    
-    ESP_LOGI(TAG, "Wifi the C++ way ... :-)");
-    Wifi wifi;
-    wifi.connect(WIFI_SSID, WIFI_PASS);
+  initNvs();
+  ESP_LOGI(TAG, "Wifi the C++ way ... :-)");
+  Wifi wifi;
+  wifi.connect(WIFI_SSID, WIFI_PASS);
+}
+
 }
