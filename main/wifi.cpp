@@ -1,6 +1,8 @@
 /** WIFI functionality for Winston ESP. */
 #include "wifi.h"
 
+#include "events.h"
+
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -15,6 +17,8 @@
 #include "lwip/sys.h"
 
 namespace {
+
+ESP_EVENT_DEFINE_BASE(WINSTON_EVENT);
 
 #define MAXIMUM_RETRY  5
 
@@ -38,12 +42,13 @@ static void event_handler(void* arg, esp_event_base_t event_base,
       s_retry_num++;
       ESP_LOGI(TAG, "retry to connect to the AP");
     }
-    ESP_LOGI(TAG,"connect to the AP fail");
+    ESP_LOGI(TAG,"connect to the AP failed");
   } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
     ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
     ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
     s_retry_num = 0;
     xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
+    esp_event_post(WINSTON_EVENT, WIFI_CONNECTED, NULL, 0, portMAX_DELAY);
   }
 }
 }
@@ -53,7 +58,6 @@ void Wifi::connect(const std::string& ssid, const std::string& password) {
   s_wifi_event_group = xEventGroupCreate();
 
   ESP_ERROR_CHECK(esp_netif_init());
-  ESP_ERROR_CHECK(esp_event_loop_create_default());
   esp_netif_create_default_wifi_sta();
 
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();

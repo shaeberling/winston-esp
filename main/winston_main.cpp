@@ -12,14 +12,41 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 
+#include "events.h"
+#include "server.h"
 #include "wifi.h"
 
-#define WIFI_SSID CONFIG_ESP_WIFI_SSID
-#define WIFI_PASS CONFIG_ESP_WIFI_PASSWORD
+#define WIFI_SSID   CONFIG_ESP_WIFI_SSID
+#define WIFI_PASS   CONFIG_ESP_WIFI_PASSWORD
+#define SERVER_PORT 80
 
 static const char *TAG = "winston-main";
 
-extern "C" {
+ESP_EVENT_DEFINE_BASE(WINSTON_EVENT);
+namespace {
+
+Wifi* wifi;
+Server* server;
+
+/** Called when WIFI connected (we have an IP). */
+void onWifiConnected() {
+  ESP_LOGI(TAG, "Wifi connected. Starting webserver ...");
+  server = new Server(SERVER_PORT);
+  if (server->start()) {
+    ESP_LOGI(TAG, "Webserver successfully started.");
+  } else {
+    ESP_LOGE(TAG, "Starting the webserver failed.");
+  }
+}
+
+void event_handler(void* arg, esp_event_base_t event_base, 
+                   int32_t event_id, void* event_data) {
+  if (event_base == WINSTON_EVENT && event_id == WIFI_CONNECTED) {
+    onWifiConnected();
+  } else {
+    ESP_LOGW(TAG, "Received unknown winston event.");
+  }
+}
 
 //Initialize NVS
 void initNvs() {
@@ -31,11 +58,24 @@ void initNvs() {
   ESP_ERROR_CHECK(ret);  
 }
 
+}  // namespace
+
+
+extern "C" {
+
 void app_main(void) {
+  ESP_LOGI(TAG, ".: Winston ESP Node :.");
+  // Default loop required for various events.
+  // (We could create our own event loops, but for now using the default seems fine).
+  ESP_ERROR_CHECK(esp_event_loop_create_default());
+
+  ESP_ERROR_CHECK(esp_event_handler_register(WINSTON_EVENT, WIFI_CONNECTED,
+                                             &event_handler, NULL));
+
   initNvs();
-  ESP_LOGI(TAG, "Wifi the C++ way ... :-)");
-  Wifi wifi;
-  wifi.connect(WIFI_SSID, WIFI_PASS);
+  ESP_LOGI(TAG, "NVS initialized. Connecting to Wifi...");
+  wifi = new Wifi;
+  wifi->connect(WIFI_SSID, WIFI_PASS);
 }
 
-}
+} // extern "C"
