@@ -1,8 +1,9 @@
 #include "relay_controller.h"
 
 #include "esp_log.h"
-
 #include "driver/gpio.h"
+
+#define CLICK_DELAY_MILLIS 500
 
 static const char *TAG = "relay-controller";
 
@@ -13,14 +14,28 @@ RelayController::RelayController(const std::vector<int>& mapping) : mapping_(map
 }
 
 // public 
-void RelayController::switch_on(int idx, bool on) {
+bool RelayController::switch_on(int idx, bool on) {
   if (mapping_.size() <= idx) {
     ESP_LOGW(TAG, "Illegal relay index '%d'", idx);
-    return;
+    return false;
   }
   ESP_LOGI(TAG, "Swtching relay %d %s", idx, (on ? "ON" : "OFF"));
   // For relays that are switched by pulling them down.
   gpio_set_level((gpio_num_t) mapping_[idx], (on ? 0 : 1));
+  return true;
+}
+
+// public 
+bool RelayController::click(int idx) {
+  if (mapping_.size() <= idx) {
+    ESP_LOGW(TAG, "Illegal relay index '%d'", idx);
+    return false;
+  }
+  // Turn switch on, wait, turn it back off.
+  switch_on(idx, true);
+  vTaskDelay(CLICK_DELAY_MILLIS / portTICK_PERIOD_MS);
+  switch_on(idx, false);
+  return true;
 }
 
 // private 

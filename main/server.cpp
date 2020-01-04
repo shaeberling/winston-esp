@@ -78,7 +78,8 @@ esp_err_t Server::handle_io(httpd_req_t *req) {
   } else if (requestStr.rfind("/relay/", 0) == 0) {
     std::string req_data((const char*)(req->uri + sizeof("/io/relay/") - 1));
     bool success = switch_relay_on(req_data);
-    httpd_resp_send(req, success ? "1" : "0", 1);
+    auto resp = success ? "OK" : "FAIL";
+    httpd_resp_send(req, resp, strlen(resp));
   } else {
     const char* resp_str = "Hello, Winston ESP here.";
     httpd_resp_send(req, resp_str, strlen(resp_str));    
@@ -122,12 +123,13 @@ bool Server::switch_relay_on(const std::string& req) {
   auto relay_switch_cmd = req.substr(found + 1);
   ESP_LOGI(TAG, "Switch command is '%s'", relay_switch_cmd.c_str());
   if (relay_switch_cmd == "0") {
-    relay_controller_->switch_on(relay_idx, false);
+    return relay_controller_->switch_on(relay_idx, false);
   } else if (relay_switch_cmd == "1") {
-    relay_controller_->switch_on(relay_idx, true);
+    return relay_controller_->switch_on(relay_idx, true);
+  } else if (relay_switch_cmd == "2") {
+    return relay_controller_->click(relay_idx);
   } else {
     ESP_LOGW(TAG, "Invalid relay switch value.");
     return false;
   }
-  return true;
 }

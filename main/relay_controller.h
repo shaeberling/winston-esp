@@ -9,7 +9,8 @@
 class RelayController {
  public:
   RelayController(const std::vector<int>& mapping);
-  void switch_on(int idx, bool on);
+  bool switch_on(int idx, bool on);
+  bool click(int idx);
  private:
   std::vector<int> mapping_;
   void initPin(int n);
