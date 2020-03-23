@@ -6,6 +6,7 @@
 #include <esp_http_server.h>
 #include <vector>
 
+// Controls relays that are active-low. */
 class RelayController {
  public:
   RelayController(const std::vector<int>& mapping);

@@ -20,7 +20,9 @@ bool RelayController::switch_on(int idx, bool on) {
     return false;
   }
   ESP_LOGI(TAG, "Swtching relay %d %s", idx, (on ? "ON" : "OFF"));
-  // For relays that are switched by pulling them down.
+
+  // Note, all of this logic here is for relays that are switched by
+  // pulling them down (active-low).
   gpio_set_level((gpio_num_t) mapping_[idx], (on ? 0 : 1));
   return true;
 }
@@ -38,9 +40,9 @@ bool RelayController::click(int idx) {
   return true;
 }
 
-// private 
+// private
 void RelayController::initPin(int n) {
-  ESP_LOGI(TAG, "Initializing ping %d as RELAY.", n);
+  ESP_LOGI(TAG, "Initializing pin %d as RELAY.", n);
   gpio_config_t io_conf;
   // No interrupt.
   io_conf.intr_type = GPIO_INTR_DISABLE;
@@ -50,6 +52,9 @@ void RelayController::initPin(int n) {
   io_conf.mode = GPIO_MODE_OUTPUT;
   // Enable pull-up mode
   io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+  // Ensure that pin is pulled high before initialization. If this is
+  // skipped, it will cause the pin to be pulled low (to ground) which
+  // causes an acive-low relay to turn on, which would be bad!
+  gpio_set_level((gpio_num_t) n, 1);
   gpio_config(&io_conf);
 }
-

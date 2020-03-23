@@ -78,10 +78,11 @@ void app_main(void) {
   ESP_ERROR_CHECK(esp_event_handler_register(WINSTON_EVENT, WIFI_CONNECTED,
                                              &event_handler, NULL));
 
-  // TODO: Make these configurable.
-  std::vector<int> reed_mapping = { 13 };
+  // TODO: Make these configurable through flags.
+  // Note: GPIO-5 should not be used for the relay (outputs PWM on startup).
+  std::vector<int> reed_mapping = { 5, 18 };
   reed_controller = new ReedController(reed_mapping);
-  std::vector<int> relay_mapping = { 12, 14 };
+  std::vector<int> relay_mapping = { 19, 21 };
   relay_controller = new RelayController(relay_mapping);
 
   initNvs();
