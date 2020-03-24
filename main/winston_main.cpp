@@ -17,6 +17,7 @@
 #include "events.h"
 #include "reed_controller.h"
 #include "relay_controller.h"
+#include "temp_controller.h"
 #include "server.h"
 #include "wifi.h"
 
@@ -31,13 +32,15 @@ namespace {
 
 ReedController* reed_controller;
 RelayController* relay_controller;
+TempController* temp_controller;
 Server* server;
 Wifi* wifi;
 
 /** Called when WIFI connected (we have an IP). */
 void onWifiConnected() {
   ESP_LOGI(TAG, "Wifi connected. Starting webserver ...");
-  server = new Server(SERVER_PORT, reed_controller, relay_controller);
+  server = new Server(SERVER_PORT, reed_controller, relay_controller,
+                      temp_controller);
   if (server->start()) {
     ESP_LOGI(TAG, "Webserver successfully started.");
   } else {
@@ -84,6 +87,7 @@ void app_main(void) {
   reed_controller = new ReedController(reed_mapping);
   std::vector<int> relay_mapping = { 19, 21 };
   relay_controller = new RelayController(relay_mapping);
+  temp_controller = new TempController();
 
   initNvs();
   ESP_LOGI(TAG, "NVS initialized. Connecting to Wifi...");

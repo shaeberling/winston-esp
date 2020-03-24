@@ -25,11 +25,13 @@ esp_err_t http_404_error_handler(httpd_req_t *req, httpd_err_code_t err) {
 
 Server::Server(int port,
                ReedController* reed_controller,
-               RelayController* relay_controller)
+               RelayController* relay_controller,
+               TempController* temp_controller)
     :port_(port),
      server_(NULL),
      reed_controller_(reed_controller),
-     relay_controller_(relay_controller) {
+     relay_controller_(relay_controller),
+     temp_controller_(temp_controller) {
   // Configure request handlers.
   io_handler_.uri = "/io/*";
   io_handler_.method   = HTTP_GET;
@@ -70,6 +72,7 @@ esp_err_t Server::io_get_handler(httpd_req_t *req) {
 
 // private
 esp_err_t Server::handle_io(httpd_req_t *req) {
+  // TODO: Separate this out into modules.
   std::string requestStr((const char*)(req->uri + sizeof("/io") - 1));
   if (requestStr.rfind("/reed/", 0) == 0) {
     std::string req_data((const char*)(req->uri + sizeof("/io/reed/") - 1));
@@ -80,6 +83,11 @@ esp_err_t Server::handle_io(httpd_req_t *req) {
     bool success = switch_relay_on(req_data);
     auto resp = success ? "OK" : "FAIL";
     httpd_resp_send(req, resp, strlen(resp));
+  } else if (requestStr.rfind("/temp/", 0) == 0) {
+    std::string req_data((const char*)(req->uri + sizeof("/io/temp/") - 1));
+    float temperature = get_temperature(req_data);
+    auto resp = std::to_string(temperature).c_str();
+    httpd_resp_send(req, resp, strlen(resp));
   } else {
     const char* resp_str = "Hello, Winston ESP here.";
     httpd_resp_send(req, resp_str, strlen(resp_str));    
@@ -89,6 +97,7 @@ esp_err_t Server::handle_io(httpd_req_t *req) {
 
 
 // private
+// /io/reed/[idx]
 bool Server::is_reed_closed(const std::string& req) {
   ESP_LOGI(TAG, "Geet reed status for '%s'", req.c_str());
   char* pEnd = NULL;
@@ -101,6 +110,7 @@ bool Server::is_reed_closed(const std::string& req) {
 }
 
 // private
+// /io/relay/[idx]/[0,1,2]
 bool Server::switch_relay_on(const std::string& req) {
   ESP_LOGI(TAG, "Switch relay '%s'", req.c_str());
 
@@ -132,4 +142,18 @@ bool Server::switch_relay_on(const std::string& req) {
     ESP_LOGW(TAG, "Invalid relay switch value.");
     return false;
   }
+}
+
+// /io/temp/[idx]
+float Server::get_temperature(const std::string& req) {
+  ESP_LOGI(TAG, "Get temperature '%s'", req.c_str());
+
+  // TODO: Turn this into a method, return an optional/null.
+  char* pEnd = NULL;
+  int temp_idx = strtod(req.c_str(), &pEnd);
+  if (*pEnd) {
+    ESP_LOGW(TAG, "Cannot parse temperature sensor index.");
+    return -1;
+  }
+  return temp_controller_->get_celsius(temp_idx);
 }
