@@ -26,12 +26,14 @@ esp_err_t http_404_error_handler(httpd_req_t *req, httpd_err_code_t err) {
 Server::Server(int port,
                ReedController* reed_controller,
                RelayController* relay_controller,
-               TempController* temp_controller)
+               TempController* temp_controller,
+               HallEffectController* hall_controller)
     :port_(port),
      server_(NULL),
      reed_controller_(reed_controller),
      relay_controller_(relay_controller),
-     temp_controller_(temp_controller) {
+     temp_controller_(temp_controller),
+     hall_controller_(hall_controller) {
   // Configure request handlers.
   io_handler_.uri = "/io/*";
   io_handler_.method   = HTTP_GET;
@@ -87,6 +89,11 @@ esp_err_t Server::handle_io(httpd_req_t *req) {
     std::string req_data((const char*)(req->uri + sizeof("/io/temp/") - 1));
     float temperature = get_temperature(req_data);
     auto resp = std::to_string(temperature).c_str();
+    httpd_resp_send(req, resp, strlen(resp));
+  } else if (requestStr.rfind("/hall/", 0) == 0) {
+    std::string req_data((const char*)(req->uri + sizeof("/io/hall/") - 1));
+    int value = get_hall_effect(req_data);
+    auto resp = std::to_string(value).c_str();
     httpd_resp_send(req, resp, strlen(resp));
   } else {
     const char* resp_str = "Hello, Winston ESP here.";
@@ -156,4 +163,18 @@ float Server::get_temperature(const std::string& req) {
     return -1;
   }
   return temp_controller_->get_celsius(temp_idx);
+}
+
+// /io/hall/[idx]
+int Server::get_hall_effect(const std::string& req) {
+  ESP_LOGI(TAG, "Get hall effect '%s'", req.c_str());
+
+  // TODO: Turn this into a method, return an optional/null.
+  char* pEnd = NULL;
+  int hall_idx = strtod(req.c_str(), &pEnd);
+  if (*pEnd) {
+    ESP_LOGW(TAG, "Cannot parse hall efect sensor index.");
+    return -1;
+  }
+  return hall_controller_->get_value(hall_idx);
 }

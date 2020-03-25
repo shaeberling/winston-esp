@@ -7,6 +7,7 @@
 #include <esp_err.h>
 #include <esp_http_server.h>
 
+#include "hall_effect_controller.h"
 #include "reed_controller.h"
 #include "relay_controller.h"
 #include "temp_controller.h"
@@ -15,7 +16,8 @@ class Server {
  public:
   Server(int port, ReedController* reed_controller,
          RelayController* relay_controller,
-         TempController* temp_controller);
+         TempController* temp_controller,
+         HallEffectController* hall_controller);
   bool start();
   void stop();
 
@@ -25,6 +27,7 @@ class Server {
   ReedController* reed_controller_;
   RelayController* relay_controller_;
   TempController* temp_controller_;
+  HallEffectController* hall_controller_;
   httpd_uri_t io_handler_;
 
   static esp_err_t io_get_handler(httpd_req_t *req);
@@ -32,6 +35,7 @@ class Server {
   bool is_reed_closed(const std::string& req);
   bool switch_relay_on(const std::string& req);
   float get_temperature(const std::string& req);
+  int get_hall_effect(const std::string& req);
 };
 
 #endif /* _WINSTON_SERVER_H_ */

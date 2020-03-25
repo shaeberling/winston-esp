@@ -15,6 +15,7 @@
 #include "nvs_flash.h"
 
 #include "events.h"
+#include "hall_effect_controller.h"
 #include "reed_controller.h"
 #include "relay_controller.h"
 #include "temp_controller.h"
@@ -33,6 +34,7 @@ namespace {
 ReedController* reed_controller;
 RelayController* relay_controller;
 TempController* temp_controller;
+HallEffectController* hall_controller;
 Server* server;
 Wifi* wifi;
 
@@ -40,7 +42,7 @@ Wifi* wifi;
 void onWifiConnected() {
   ESP_LOGI(TAG, "Wifi connected. Starting webserver ...");
   server = new Server(SERVER_PORT, reed_controller, relay_controller,
-                      temp_controller);
+                      temp_controller, hall_controller);
   if (server->start()) {
     ESP_LOGI(TAG, "Webserver successfully started.");
   } else {
@@ -88,11 +90,15 @@ void app_main(void) {
   std::vector<int> relay_mapping = { 19, 21 };
   relay_controller = new RelayController(relay_mapping);
   temp_controller = new TempController();
+  hall_controller = new HallEffectController();
 
   initNvs();
   ESP_LOGI(TAG, "NVS initialized. Connecting to Wifi...");
   wifi = new Wifi;
   wifi->connect(WIFI_SSID, WIFI_PASS);
+
+  // Note: This will change ADC config and will use up some pins around 36.
+  hall_controller->init();
 }
 
 } // extern "C"
