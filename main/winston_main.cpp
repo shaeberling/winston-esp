@@ -16,6 +16,7 @@
 
 #include "events.h"
 #include "hall_effect_controller.h"
+#include "oled_controller.h"
 #include "reed_controller.h"
 #include "relay_controller.h"
 #include "temp_controller.h"
@@ -35,6 +36,8 @@ ReedController* reed_controller;
 RelayController* relay_controller;
 TempController* temp_controller;
 HallEffectController* hall_controller;
+OledController* oled_controller;
+
 Server* server;
 Wifi* wifi;
 
@@ -75,6 +78,10 @@ void initNvs() {
 extern "C" {
 
 void app_main(void) {
+  // Can control an external OLED display.
+  // TODO: Add an sdkconfig variable about activating it or not (same for other modules).
+  oled_controller = new OledController();
+
   ESP_LOGI(TAG, ".: Winston ESP Node :.");
 
   // Default loop required for various events.
