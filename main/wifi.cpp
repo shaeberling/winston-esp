@@ -34,21 +34,32 @@ static int s_retry_num = 0;
 static void event_handler(void* arg, esp_event_base_t event_base, 
                           int32_t event_id, void* event_data) {
   if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
+    ESP_LOGI(TAG, "WIFI: Connection Start");
     esp_wifi_connect();
   } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+    ESP_LOGI(TAG, "WIFI: Disconnected");
     if (s_retry_num < MAXIMUM_RETRY) {
       esp_wifi_connect();
       xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
       s_retry_num++;
       ESP_LOGI(TAG, "retry to connect to the AP");
+
+      // FIXME: Check if this gets called even after we have had a
+      // successful connection. And if so, retry with sleep (or reboot)
+      // Then reboot after n number of retries with sleep.
+    } else {
+      ESP_LOGI(TAG,"connect to the AP failed. Not retrying.");
     }
-    ESP_LOGI(TAG,"connect to the AP failed");
   } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
     ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
     ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
     s_retry_num = 0;
     xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
+    // Fire off an event to let other event listener know that WIFI is
+    // now connected.
     esp_event_post(WINSTON_EVENT, WIFI_CONNECTED, NULL, 0, portMAX_DELAY);
+  } else {
+    ESP_LOGI(TAG, "WIFI: Unknown event.");
   }
 }
 }
