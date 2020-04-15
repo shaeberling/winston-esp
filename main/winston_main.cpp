@@ -38,11 +38,16 @@ TempController* temp_controller;
 HallEffectController* hall_controller;
 OledController* oled_controller;
 
-Server* server;
+Server* server = NULL;
 Wifi* wifi;
 
 /** Called when WIFI connected (we have an IP). */
 void onWifiConnected() {
+  if (server != NULL) {
+    ESP_LOGI(TAG, "Stopping previously started webserver...");
+    server->stop();
+    ESP_LOGI(TAG, "Webserver stopped.");
+  }
   ESP_LOGI(TAG, "Wifi connected. Starting webserver ...");
   server = new Server(SERVER_PORT, reed_controller, relay_controller,
                       temp_controller, hall_controller);
