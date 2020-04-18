@@ -5,6 +5,7 @@ idf_component_register(SRCS "winston_main.cpp"
                             "relay_controller.cpp"
                             "server.cpp"
                             "temp_controller.cpp"
+                            "ui_controller.cpp"
                             "wifi.cpp"
                        INCLUDE_DIRS ""
                        REQUIRES main

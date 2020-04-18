@@ -20,6 +20,7 @@
 #include "reed_controller.h"
 #include "relay_controller.h"
 #include "temp_controller.h"
+#include "ui_controller.h"
 #include "server.h"
 #include "wifi.h"
 
@@ -37,6 +38,7 @@ RelayController* relay_controller;
 TempController* temp_controller;
 HallEffectController* hall_controller;
 OledController* oled_controller;
+UiController* ui_controller;
 
 Server* server = NULL;
 Wifi* wifi;
@@ -83,10 +85,6 @@ void initNvs() {
 extern "C" {
 
 void app_main(void) {
-  // Can control an external OLED display.
-  // TODO: Add an sdkconfig variable about activating it or not (same for other modules).
-  oled_controller = new OledController();
-
   ESP_LOGI(TAG, ".: Winston ESP Node :.");
 
   // Default loop required for various events.
@@ -103,6 +101,8 @@ void app_main(void) {
   relay_controller = new RelayController(relay_mapping);
   temp_controller = new TempController();
   hall_controller = new HallEffectController();
+  oled_controller = new OledController();
+  ui_controller = new UiController(oled_controller);
 
   initNvs();
   ESP_LOGI(TAG, "NVS initialized. Connecting to Wifi...");
@@ -110,7 +110,11 @@ void app_main(void) {
   wifi->connect(WIFI_SSID, WIFI_PASS);
 
   // Note: This will change ADC config and will use up some pins around 36.
-  hall_controller->init();
+  // TODO: Make this a start-up config parameter.
+  // hall_controller->init();
+  // TODO: Add an sdkconfig variable about activating it or not (same for other modules).
+  oled_controller->init();
+  ui_controller->init();
 }
 
 } // extern "C"
