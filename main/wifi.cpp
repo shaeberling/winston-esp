@@ -62,7 +62,7 @@ static void event_handler(void* arg, esp_event_base_t event_base,
     ESP_LOGI(TAG, "WIFI: Unknown event.");
   }
 }
-}
+}  // namespace
 
 // public
 void Wifi::connect(const std::string& ssid, const std::string& password) {
