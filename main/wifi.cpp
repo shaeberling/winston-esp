@@ -43,12 +43,11 @@ static void event_handler(void* arg, esp_event_base_t event_base,
       xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
       s_retry_num++;
       ESP_LOGI(TAG, "retry to connect to the AP");
-
-      // FIXME: Check if this gets called even after we have had a
-      // successful connection. And if so, retry with sleep (or reboot)
-      // Then reboot after n number of retries with sleep.
     } else {
-      ESP_LOGI(TAG,"connect to the AP failed. Not retrying.");
+      ESP_LOGI(TAG,"connect to the AP failed. Rebooting in 2 minutes.");
+      auto delay_millis = 2 * 60 * 1000;
+      vTaskDelay(delay_millis / portTICK_PERIOD_MS);
+      esp_restart();
     }
   } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
     ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
