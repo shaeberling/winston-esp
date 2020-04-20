@@ -38,6 +38,12 @@ bool RelayController::click(int idx, int delay_millis) {
     ESP_LOGW(TAG, "Illegal relay index '%d'", idx);
     return false;
   }
+  if (delay_millis <= 0) {
+    ESP_LOGW(TAG, "Click delay must be positive. Was: '%d'", delay_millis);
+    return false;
+  }
+
+  ESP_LOGI(TAG, "Clicking delay %d for %d milliseconds.", idx, delay_millis);
   // Turn switch on, wait, turn it back off.
   switch_on(idx, true);
   vTaskDelay(delay_millis / portTICK_PERIOD_MS);
