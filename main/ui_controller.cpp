@@ -18,7 +18,7 @@
 static const char *TAG = "win-ui-ctrl";
 
 UiController::UiController(OledController* display)
-    : display_(display), initiated_(false) {
+    : display_(display), initiated_(false), connection_attempts_(0) {
 }
 
 void UiController::init() {
@@ -38,13 +38,19 @@ void UiController::init() {
 void UiController::onEvent(esp_event_base_t event_base, 
                            int32_t event_id, void* event_data) {
   if (event_base == WINSTON_EVENT && event_id == WIFI_CONNECTED) {
+    this->connection_attempts_ = 0;
     this->display_->setWifiStatus(DISPLAY_WIFI_CONNECTED);
   } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
     this->display_->setWifiStatus(DISPLAY_WIFI_CONNECTING);
     this->display_->setIpAddress("...");
   } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+    this->connection_attempts_++;
     this->display_->setWifiStatus(DISPLAY_WIFI_NOT_CONNECTED);
-    this->display_->setIpAddress("none");
+    // When disconnected, we will retry until WIFI_CONNECTED. Thus, show
+    // a useful message about how many re-connect attemps we've tried.
+    std::string ip_message("Attempts: ");
+    ip_message += std::to_string(this->connection_attempts_);
+    this->display_->setIpAddress(ip_message);
   } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
     ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
     char ip_str[16];  // enough to hold an IP address.

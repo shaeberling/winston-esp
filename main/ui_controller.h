@@ -17,6 +17,7 @@ class UiController {
  private:
   OledController* display_;
   bool initiated_;
+  int connection_attempts_;
   void onEvent(esp_event_base_t event_base, int32_t event_id,
                void* event_data);
 
