@@ -1,7 +1,10 @@
 /* HTTP server for the Winston REST API. */
 #include "server.h"
 
+#include <sstream>
 #include <string>
+#include <vector>
+
 #include <esp_wifi.h>
 #include <esp_event.h>
 #include <esp_log.h>
@@ -16,12 +19,26 @@
 
 static const char *TAG = "winston-server";
 
+namespace {
+
 esp_err_t http_404_error_handler(httpd_req_t *req, httpd_err_code_t err) {
   ESP_LOGI(TAG, "404 ERROR");
   httpd_resp_send_err(req, HTTPD_404_NOT_FOUND,
                       "I'm sorry, Dave, I'm afraid I can't do that.");
   return ESP_OK;
 }
+
+void split(const std::string& str,
+           const char delim,
+           std::vector<std::string>* items) {
+  std::stringstream ss(str);
+  std::string token;
+  while (std::getline(ss, token, delim)) {
+      items->push_back(token);
+  }
+}
+
+}  // namespace
 
 Server::Server(int port,
                ReedController* reed_controller,
@@ -82,7 +99,7 @@ esp_err_t Server::handle_io(httpd_req_t *req) {
     httpd_resp_send(req, closed ? "1" : "0", 1);
   } else if (requestStr.rfind("/relay/", 0) == 0) {
     std::string req_data((const char*)(req->uri + sizeof("/io/relay/") - 1));
-    bool success = switch_relay_on(req_data);
+    bool success = switch_relay(req_data);
     auto resp = success ? "OK" : "FAIL";
     httpd_resp_send(req, resp, strlen(resp));
   } else if (requestStr.rfind("/temp/", 0) == 0) {
@@ -117,18 +134,26 @@ bool Server::is_reed_closed(const std::string& req) {
 }
 
 // private
-// /io/relay/[idx]/[0,1,2]
-bool Server::switch_relay_on(const std::string& req) {
+// /io/relay/[idx]/[0,1,2,3]
+// @param req: E.g. "0/1", 1/0", "3/0/10000"
+// 0 = TURN OFF
+// 1 = TURN ON
+// 2 = CLICK WITH DEFAULT DELAY
+// 3 = CLICK WITH SPECIFIED DELAY (IN MILLIS).
+bool Server::switch_relay(const std::string& req) {
   ESP_LOGI(TAG, "Switch relay '%s'", req.c_str());
 
-  // Format at this point should be  <relay>/<on>
-  std::size_t found = req.rfind("/");
-  if (found == std::string::npos) {
+  // Extract the arguments.
+  std::vector<std::string> args;
+  split(req, '/', &args);
+
+  // Format at this point should be  <relay>/<on>[/<params>]
+  if (args.size() < 2) {
     ESP_LOGW(TAG, "Invalid relay switch request: Missing switch component.");
     return false;
   }
 
-  auto relay_idx_str = req.substr(0, found);
+  const std::string& relay_idx_str = args[0];
   ESP_LOGI(TAG, "Switch relay idx '%s'", relay_idx_str.c_str());
   char* pEnd = NULL;
   int relay_idx = strtod(relay_idx_str.c_str(), &pEnd);
@@ -137,7 +162,7 @@ bool Server::switch_relay_on(const std::string& req) {
     return false;
   }
 
-  auto relay_switch_cmd = req.substr(found + 1);
+  const std::string& relay_switch_cmd = args[1];
   ESP_LOGI(TAG, "Switch command is '%s'", relay_switch_cmd.c_str());
   if (relay_switch_cmd == "0") {
     return relay_controller_->switch_on(relay_idx, false);
@@ -145,6 +170,20 @@ bool Server::switch_relay_on(const std::string& req) {
     return relay_controller_->switch_on(relay_idx, true);
   } else if (relay_switch_cmd == "2") {
     return relay_controller_->click(relay_idx);
+  } else if (relay_switch_cmd == "3") {
+    if (args.size() < 3) {
+      ESP_LOGW(TAG, "Invalid relay switch request: Command '3' needs param.");
+      return false;
+    }
+
+    // Parse the "click" parameter (the third request argument).
+    pEnd = NULL;
+    int click_delay_millis = strtod(args[2].c_str(), &pEnd);
+    if (*pEnd) {
+      ESP_LOGW(TAG, "Invalid 'click' parmeter. Must be an int.");
+      return false;
+    }
+    return relay_controller_->click(relay_idx, click_delay_millis);
   } else {
     ESP_LOGW(TAG, "Invalid relay switch value.");
     return false;

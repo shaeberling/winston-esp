@@ -33,7 +33,7 @@ class Server {
   static esp_err_t io_get_handler(httpd_req_t *req);
   esp_err_t handle_io(httpd_req_t *req);
   bool is_reed_closed(const std::string& req);
-  bool switch_relay_on(const std::string& req);
+  bool switch_relay(const std::string& req);
   float get_temperature(const std::string& req);
   int get_hall_effect(const std::string& req);
 };
