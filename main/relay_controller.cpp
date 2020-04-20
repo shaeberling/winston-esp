@@ -3,7 +3,7 @@
 #include "esp_log.h"
 #include "driver/gpio.h"
 
-#define CLICK_DELAY_MILLIS 500
+#define DEFAULT_CLICK_DELAY_MILLIS 500
 
 static const char *TAG = "relay-controller";
 
@@ -29,13 +29,18 @@ bool RelayController::switch_on(int idx, bool on) {
 
 // public 
 bool RelayController::click(int idx) {
+  return click(idx, DEFAULT_CLICK_DELAY_MILLIS);
+}
+
+// public 
+bool RelayController::click(int idx, int delay_millis) {
   if (mapping_.size() <= idx) {
     ESP_LOGW(TAG, "Illegal relay index '%d'", idx);
     return false;
   }
   // Turn switch on, wait, turn it back off.
   switch_on(idx, true);
-  vTaskDelay(CLICK_DELAY_MILLIS / portTICK_PERIOD_MS);
+  vTaskDelay(delay_millis / portTICK_PERIOD_MS);
   switch_on(idx, false);
   return true;
 }
