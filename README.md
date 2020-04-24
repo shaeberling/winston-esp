@@ -23,7 +23,7 @@ See https://git-scm.com/book/en/v2/Git-Tools-Submodules
 You need to have the ESP-IDF toolchain installed.
 
 ## Configuring
-The idf.sh script is a helper to pre-select the port your ESP32 is connected to as well as the baud rate it is typically operating at.
+The `idf.sh` script is a helper to pre-select the port your ESP32 is connected to as well as the baud rate it is typically operating at.
 
 These values, especially the port might be different for you, in which case you should modify it in the script.
 
