@@ -16,7 +16,7 @@
 
 #include "events.h"
 #include "hall_effect_controller.h"
-#include "oled_controller.h"
+#include "display_controller.h"
 #include "reed_controller.h"
 #include "relay_controller.h"
 #include "temp_controller.h"
@@ -37,7 +37,7 @@ ReedController* reed_controller;
 RelayController* relay_controller;
 TempController* temp_controller;
 HallEffectController* hall_controller;
-OledController* oled_controller;
+DisplayController* display_controller;
 UiController* ui_controller;
 
 Server* server = NULL;
@@ -101,8 +101,8 @@ void app_main(void) {
   relay_controller = new RelayController(relay_mapping);
   temp_controller = new TempController();
   hall_controller = new HallEffectController();
-  oled_controller = new OledController();
-  ui_controller = new UiController(oled_controller);
+  display_controller = new DisplayController();
+  ui_controller = new UiController(display_controller);
 
   initNvs();
   ESP_LOGI(TAG, "NVS initialized. Connecting to Wifi...");
@@ -113,7 +113,7 @@ void app_main(void) {
   // TODO: Make this a start-up config parameter.
   // hall_controller->init();
   // TODO: Add an sdkconfig variable about activating it or not (same for other modules).
-  oled_controller->init();
+  display_controller->init();
   ui_controller->init();
 }
 

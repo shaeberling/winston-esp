@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef _WINSTON_OLED_CONTROLLER_H_
-#define _WINSTON_OLED_CONTROLLER_H_
+#ifndef _WINSTON_DISPLAY_CONTROLLER_H_
+#define _WINSTON_DISPLAY_CONTROLLER_H_
 
 #include "ssd1306.hpp"
 
@@ -11,9 +11,9 @@ enum WifiStatus {DISPLAY_WIFI_CONNECTED,
 };
 
 // Controls relays that are active-low. */
-class OledController {
+class DisplayController {
  public:
-  OledController();
+  DisplayController();
   void init();
   void setWifiStatus(WifiStatus status);
   void setIpAddress(const std::string& address);
@@ -27,4 +27,4 @@ class OledController {
   void update();
 };
 
-#endif /* _WINSTON_OLED_CONTROLLER_H_ */
+#endif /* _WINSTON_DISPLAY_CONTROLLER_H_ */

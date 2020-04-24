@@ -1,6 +1,6 @@
 idf_component_register(SRCS "winston_main.cpp"
                             "hall_effect_controller.cpp"
-                            "oled_controller.cpp"
+                            "display_controller.cpp"
                             "reed_controller.cpp"
                             "relay_controller.cpp"
                             "server.cpp"

@@ -13,11 +13,11 @@
 #include "esp_event.h"
 #include "esp_log.h"
 
-#include "oled_controller.h"
+#include "display_controller.h"
 
 static const char *TAG = "win-ui-ctrl";
 
-UiController::UiController(OledController* display)
+UiController::UiController(DisplayController* display)
     : display_(display), initiated_(false), connection_attempts_(0) {
 }
 

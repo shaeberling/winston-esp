@@ -7,15 +7,15 @@
 
 #include "esp_event.h"
 
-#include "oled_controller.h"
+#include "display_controller.h"
 
 class UiController {
  public:
-  UiController(OledController* display);
+  UiController(DisplayController* display);
   // Enables listening to events to update display contents.
   void init();
  private:
-  OledController* display_;
+  DisplayController* display_;
   bool initiated_;
   int connection_attempts_;
   void onEvent(esp_event_base_t event_base, int32_t event_id,

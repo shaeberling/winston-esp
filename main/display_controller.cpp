@@ -1,11 +1,11 @@
-#include "oled_controller.h"
+#include "display_controller.h"
 
 #include <sstream>
 #include "esp_log.h"
 #include "fonts.h"
 #include "ssd1306.hpp"
 
-static const char *TAG = "hall-controller";
+static const char *TAG = "display-ctrl";
 
 namespace {
 static const char* wifiStrings[] = {
@@ -20,17 +20,17 @@ const char* getWifiString(int val) {
 
 // Note: the display has 16 pixels of yellow, a little gap and 48 blue lines. 
 //       With 5 pixel-wide font, we can fit 21 chars with 2 pixel buffers.
-OledController::OledController() :
+DisplayController::DisplayController() :
     wifi_status_(DISPLAY_WIFI_NOT_CONNECTED),
     ip_address_("N/A") {
 }
 
-void OledController::init() {
+void DisplayController::init() {
   // These are the default GPIOs for the ESP32 WROOM board.
   // Change these if necessary.
   oled_ = new OLED(GPIO_NUM_22, GPIO_NUM_21, SSD1306_128x64);
   if (oled_->init()) {
-    ESP_LOGI(TAG, "OLED controller initialized.");
+    ESP_LOGI(TAG, "Display controller initialized.");
     active_ = true;
   } else {
     ESP_LOGE(TAG, "Failed to initialize OLED.");
@@ -40,7 +40,7 @@ void OledController::init() {
 }
 
 // private
-void OledController::update() {
+void DisplayController::update() {
   if (!active_) {
     return;
   }
@@ -57,12 +57,12 @@ void OledController::update() {
   oled_->refresh(true);
 }
 
-void OledController::setWifiStatus(WifiStatus status) {
+void DisplayController::setWifiStatus(WifiStatus status) {
   this->wifi_status_ = status;
   update();
 }
 
-void OledController::setIpAddress(const std::string& address) {
+void DisplayController::setIpAddress(const std::string& address) {
   this->ip_address_ = address;
   update();
 }
