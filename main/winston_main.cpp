@@ -97,9 +97,9 @@ void app_main(void) {
   // Note: GPIO-5 should not be used for the relay (outputs PWM on startup).
   // See usable GPIOs here:
   // https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
-  std::vector<int> reed_mapping = { 13, 12 };
+  std::vector<int> reed_mapping = { 14, 27 };
   reed_controller = new ReedController(reed_mapping);
-  std::vector<int> relay_mapping = { 14, 27 };
+  std::vector<int> relay_mapping = { 26, 25 };
   relay_controller = new RelayController(relay_mapping);
   temp_controller = new TempController();
   hall_controller = new HallEffectController();
