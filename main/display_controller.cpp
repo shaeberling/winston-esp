@@ -18,17 +18,26 @@ const char* getWifiString(int val) {
 };
 }
 
-// Note: the display has 16 pixels of yellow, a little gap and 48 blue lines. 
-//       With 5 pixel-wide font, we can fit 21 chars with 2 pixel buffers.
-DisplayController::DisplayController() :
+// Note: With 5 pixel-wide font, we can fit 21 chars with 2 pixel buffers.
+// Note: the color version of this display has 16 pixels of yellow, a little gap
+//       and 48 blue lines.
+DisplayController::DisplayController(const gpio_num_t scl, const gpio_num_t sda) :
+    gpio_scl_(scl),
+    gpio_sda_(sda),
+    panel_type_(SSD1306_128x64),
+    oled_(NULL),
     wifi_status_(DISPLAY_WIFI_NOT_CONNECTED),
     ip_address_("N/A") {
 }
 
 void DisplayController::init() {
+  if (oled_ != NULL) {
+
+  }
+
   // These are the default GPIOs for the ESP32 WROOM board.
   // Change these if necessary.
-  oled_ = new OLED(GPIO_NUM_22, GPIO_NUM_21, SSD1306_128x64);
+  oled_ = new OLED(gpio_scl_, gpio_sda_, panel_type_);
   if (oled_->init()) {
     ESP_LOGI(TAG, "Display controller initialized.");
     active_ = true;

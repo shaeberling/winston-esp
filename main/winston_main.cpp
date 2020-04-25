@@ -95,13 +95,15 @@ void app_main(void) {
 
   // TODO: Make these configurable through flags.
   // Note: GPIO-5 should not be used for the relay (outputs PWM on startup).
-  std::vector<int> reed_mapping = { 5, 18 };
+  // See usable GPIOs here:
+  // https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
+  std::vector<int> reed_mapping = { 13, 12 };
   reed_controller = new ReedController(reed_mapping);
-  std::vector<int> relay_mapping = { 19, 21 };
+  std::vector<int> relay_mapping = { 14, 27 };
   relay_controller = new RelayController(relay_mapping);
   temp_controller = new TempController();
   hall_controller = new HallEffectController();
-  display_controller = new DisplayController();
+  display_controller = new DisplayController(GPIO_NUM_22, GPIO_NUM_21);
   ui_controller = new UiController(display_controller);
 
   initNvs();
