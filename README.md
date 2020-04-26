@@ -31,12 +31,14 @@ Note: If you are running this on WSL using Windows 10, while having your ESP32 d
 
 ## Version history
 
-### 0.3 (future plan, not confirmed)
- - Sets up a wifi hotspot to configure wifi connection ⌛
+### 0.3 (beta in progress)
+ - Support for HTU21D temperature sensor ✓
+ - Support for HTU21D humidity sensor ✓
+ - Set up a wifi hotspot to configure wifi connection ⌛
  - OTA support (no more plugging it in to update) ⌛
  - Receive config through REST call (which sensors, which pins etc) ⌛
 
-### v0.2 (active) ⌛
+### v0.2 (active) ✓
  - Repeated Wifi retry mechanism: Will restart until connected
  - First version of a ui controller to show wifi/network info on screen
  - Support for ssd1306 controlled displays.
