@@ -9,6 +9,10 @@ static const char *TAG = "htu21d-ctrl";
 
 static const int HTU21D_ADDR = 0x40;
 
+
+static const int TEMP_NO_HOLD_MASTER = 0xF3;
+static const int HUMI_NO_HOLD_MASTER = 0xF5;
+
 HTU21DController::HTU21DController(const gpio_num_t scl, const gpio_num_t sda) :
     gpio_scl_(scl),
     gpio_sda_(sda),
@@ -64,7 +68,7 @@ float HTU21DController::getCelsius() {
     return 0;
   }
   // See page 15 of the htu21d_datasheet.pdf for details on this:
-  float result = getRaw();
+  float result = getRaw(TEMP_NO_HOLD_MASTER);
   result *= 175.72;
   result /= (2 << 15);
   result -= 46.85;
@@ -76,17 +80,21 @@ float HTU21DController::getHumidity() {
     ESP_LOGE(TAG, "HTU21D controller not initialized.");
     return 0;
   }
-  ESP_LOGW(TAG, "Warning, humidity not yet implemented.");
-  return 23;
+  // See page 15 of the htu21d_datasheet.pdf for details on this:
+  float result = getRaw(HUMI_NO_HOLD_MASTER);
+  result *= 125;
+  result /= (2 << 15);
+  result -= 6;
+  return result;
 }
 
 // private
-int HTU21DController::getRaw() {
+int HTU21DController::getRaw(int command) {
   // Sending command to request value.
   i2c_cmd_handle_t cmd = i2c_cmd_link_create();
   i2c_master_start(cmd);
   i2c_master_write_byte(cmd, (HTU21D_ADDR << 1) | I2C_MASTER_WRITE, true);
-  i2c_master_write_byte(cmd, 0xF3, true);
+  i2c_master_write_byte(cmd, command, true);
   i2c_master_stop(cmd);
   esp_err_t ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
   i2c_cmd_link_delete(cmd);
@@ -112,5 +120,6 @@ int HTU21DController::getRaw() {
     ESP_LOGE(TAG, "Cannot read response from HTU21D.");
     return 0;
   }
+  // TODO: Use CRC to ensure result is correct. (See specsheet p.14).
   return ((msb << 8) + lsb) & 0xFFFC;
 }

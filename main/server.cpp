@@ -107,6 +107,11 @@ esp_err_t Server::handle_io(httpd_req_t *req) {
     float temperature = get_temperature(req_data);
     auto resp = std::to_string(temperature).c_str();
     httpd_resp_send(req, resp, strlen(resp));
+  } else if (requestStr.rfind("/hum/", 0) == 0) {
+    std::string req_data((const char*)(req->uri + sizeof("/io/hum/") - 1));
+    float humidity = get_humidity(req_data);
+    auto resp = std::to_string(humidity).c_str();
+    httpd_resp_send(req, resp, strlen(resp));
   } else if (requestStr.rfind("/hall/", 0) == 0) {
     std::string req_data((const char*)(req->uri + sizeof("/io/hall/") - 1));
     int value = get_hall_effect(req_data);
@@ -202,6 +207,20 @@ float Server::get_temperature(const std::string& req) {
     return -1;
   }
   return temp_controller_->getCelsius(temp_idx);
+}
+
+// /io/hum/[idx]
+float Server::get_humidity(const std::string& req) {
+  ESP_LOGI(TAG, "Get humidity '%s'", req.c_str());
+
+  // TODO: Turn this into a method, return an optional/null.
+  char* pEnd = NULL;
+  int temp_idx = strtod(req.c_str(), &pEnd);
+  if (*pEnd) {
+    ESP_LOGW(TAG, "Cannot parse humidty sensor index.");
+    return -1;
+  }
+  return temp_controller_->getHumidity(temp_idx);
 }
 
 // /io/hall/[idx]

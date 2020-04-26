@@ -18,7 +18,7 @@ class HTU21DController {
 
   bool initialized_;
 
-  int getRaw();
+  int getRaw(int command);
 };
 
 #endif /* _WINSTON_HTU21D_CONTROLLER_H_ */

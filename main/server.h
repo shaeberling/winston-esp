@@ -35,6 +35,7 @@ class Server {
   bool is_reed_closed(const std::string& req);
   bool switch_relay(const std::string& req);
   float get_temperature(const std::string& req);
+  float get_humidity(const std::string& req);
   int get_hall_effect(const std::string& req);
 };
 
