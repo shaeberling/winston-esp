@@ -56,7 +56,7 @@ void DisplayController::update() {
   oled_->clear();
   oled_->select_font(0);
   oled_->fill_rectangle(0, 0, oled_->get_width(), 16, WHITE);
-  oled_->draw_string(2, 4, "Winston-ESP      v0.2", BLACK, WHITE);
+  oled_->draw_string(2, 4, "Winston-ESP     v0.2+", BLACK, WHITE);
   std::ostringstream wifi_str;
   wifi_str << "Wifi: " << getWifiString(this->wifi_status_);
   oled_->draw_string(2, 20, wifi_str.str(), WHITE, BLACK);

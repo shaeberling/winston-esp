@@ -201,7 +201,7 @@ float Server::get_temperature(const std::string& req) {
     ESP_LOGW(TAG, "Cannot parse temperature sensor index.");
     return -1;
   }
-  return temp_controller_->get_celsius(temp_idx);
+  return temp_controller_->getCelsius(temp_idx);
 }
 
 // /io/hall/[idx]
@@ -215,5 +215,5 @@ int Server::get_hall_effect(const std::string& req) {
     ESP_LOGW(TAG, "Cannot parse hall efect sensor index.");
     return -1;
   }
-  return hall_controller_->get_value(hall_idx);
+  return hall_controller_->getValue(hall_idx);
 }

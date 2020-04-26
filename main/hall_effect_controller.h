@@ -10,7 +10,7 @@
 class HallEffectController {
  public:
   HallEffectController();
-  int get_value(int idx);
+  int getValue(int idx);
   void init();
  private:
   bool initialized_;

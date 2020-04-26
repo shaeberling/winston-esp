@@ -14,14 +14,15 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 
+#include "display_controller.h"
 #include "events.h"
 #include "hall_effect_controller.h"
-#include "display_controller.h"
+#include "htu21d_controller.h"
 #include "reed_controller.h"
 #include "relay_controller.h"
+#include "server.h"
 #include "temp_controller.h"
 #include "ui_controller.h"
-#include "server.h"
 #include "wifi.h"
 
 #define WIFI_SSID   CONFIG_ESP_WIFI_SSID
@@ -39,6 +40,7 @@ TempController* temp_controller;
 HallEffectController* hall_controller;
 DisplayController* display_controller;
 UiController* ui_controller;
+HTU21DController* htu21d_controller;
 
 Server* server = NULL;
 Wifi* wifi;
@@ -101,7 +103,8 @@ void app_main(void) {
   reed_controller = new ReedController(reed_mapping);
   std::vector<int> relay_mapping = { 26, 25 };
   relay_controller = new RelayController(relay_mapping);
-  temp_controller = new TempController();
+  htu21d_controller = new HTU21DController(GPIO_NUM_22, GPIO_NUM_21);
+  temp_controller = new TempController(htu21d_controller);
   hall_controller = new HallEffectController();
   display_controller = new DisplayController(GPIO_NUM_22, GPIO_NUM_21);
   ui_controller = new UiController(display_controller);
@@ -117,6 +120,8 @@ void app_main(void) {
   // TODO: Add an sdkconfig variable about activating it or not (same for other modules).
   display_controller->init();
   ui_controller->init();
+  htu21d_controller->init();
+
 }
 
 } // extern "C"

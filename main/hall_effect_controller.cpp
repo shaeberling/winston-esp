@@ -18,7 +18,7 @@ void HallEffectController::init() {
 
 
 // public 
-int HallEffectController::get_value(int idx) {
+int HallEffectController::getValue(int idx) {
   if (!initialized_) {
     ESP_LOGW(TAG, "Hall effect controller not initialized!");
     return 0;
