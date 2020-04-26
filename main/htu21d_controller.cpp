@@ -63,8 +63,12 @@ float HTU21DController::getCelsius() {
     ESP_LOGE(TAG, "HTU21D controller not initialized.");
     return 0;
   }
+  // See page 15 of the htu21d_datasheet.pdf for details on this:
   float result = getRaw();
-  return result / 1000.0;
+  result *= 175.72;
+  result /= (2 << 15);
+  result -= 46.85;
+  return result;
 }
 
 float HTU21DController::getHumidity() {
