@@ -16,6 +16,7 @@
 #include "esp_eth.h"
 
 #include "esp_http_server.h"
+#include "request_handler.h"
 
 static const char *TAG = "winston-server";
 
@@ -40,18 +41,11 @@ void split(const std::string& str,
 
 }  // namespace
 
-Server::Server(int port,
-               ReedController* reed_controller,
-               RelayController* relay_controller,
-               TempController* temp_controller,
-               HallEffectController* hall_controller)
+Server::Server(int port, RequestHandler* request_handler)
     :port_(port),
      server_(NULL),
-     reed_controller_(reed_controller),
-     relay_controller_(relay_controller),
-     temp_controller_(temp_controller),
-     hall_controller_(hall_controller) {
-  // Configure request handlers.
+     request_handler_(request_handler) {
+  // Configure ESP httpd's request handlers.
   io_handler_.uri = "/io/*";
   io_handler_.method   = HTTP_GET;
   io_handler_.handler  = Server::io_get_handler;
@@ -91,148 +85,8 @@ esp_err_t Server::io_get_handler(httpd_req_t *req) {
 
 // private
 esp_err_t Server::handle_io(httpd_req_t *req) {
-  // TODO: Separate this out into modules.
-  std::string requestStr((const char*)(req->uri + sizeof("/io") - 1));
-  if (requestStr.rfind("/reed/", 0) == 0) {
-    std::string req_data((const char*)(req->uri + sizeof("/io/reed/") - 1));
-    bool closed = is_reed_closed(req_data);
-    httpd_resp_send(req, closed ? "1" : "0", 1);
-  } else if (requestStr.rfind("/relay/", 0) == 0) {
-    std::string req_data((const char*)(req->uri + sizeof("/io/relay/") - 1));
-    bool success = switch_relay(req_data);
-    auto resp = success ? "OK" : "FAIL";
-    httpd_resp_send(req, resp, strlen(resp));
-  } else if (requestStr.rfind("/temp/", 0) == 0) {
-    std::string req_data((const char*)(req->uri + sizeof("/io/temp/") - 1));
-    float temperature = get_temperature(req_data);
-    auto resp = std::to_string(temperature).c_str();
-    httpd_resp_send(req, resp, strlen(resp));
-  } else if (requestStr.rfind("/hum/", 0) == 0) {
-    std::string req_data((const char*)(req->uri + sizeof("/io/hum/") - 1));
-    float humidity = get_humidity(req_data);
-    auto resp = std::to_string(humidity).c_str();
-    httpd_resp_send(req, resp, strlen(resp));
-  } else if (requestStr.rfind("/hall/", 0) == 0) {
-    std::string req_data((const char*)(req->uri + sizeof("/io/hall/") - 1));
-    int value = get_hall_effect(req_data);
-    auto resp = std::to_string(value).c_str();
-    httpd_resp_send(req, resp, strlen(resp));
-  } else {
-    const char* resp_str = "Hello, Winston ESP here.";
-    httpd_resp_send(req, resp_str, strlen(resp_str));    
-  }
+  std::string uri(req->uri);
+  auto resp_str = this->request_handler_->handle(uri);
+  httpd_resp_send(req, resp_str.c_str(), resp_str.length()); 
   return ESP_OK;
-}
-
-
-// private
-// /io/reed/[idx]
-bool Server::is_reed_closed(const std::string& req) {
-  ESP_LOGI(TAG, "Geet reed status for '%s'", req.c_str());
-  char* pEnd = NULL;
-  int reed_idx = strtod(req.c_str(), &pEnd);
-  if (*pEnd) {
-    ESP_LOGW(TAG, "Invalid reed index.");
-    return false;
-  }
-  return reed_controller_->is_closed(reed_idx);
-}
-
-// private
-// /io/relay/[idx]/[0,1,2,3]
-// @param req: E.g. "0/1", 1/0", "3/0/10000"
-// 0 = TURN OFF
-// 1 = TURN ON
-// 2 = CLICK WITH DEFAULT DELAY
-// 3 = CLICK WITH SPECIFIED DELAY (IN MILLIS).
-bool Server::switch_relay(const std::string& req) {
-  ESP_LOGI(TAG, "Switch relay '%s'", req.c_str());
-
-  // Extract the arguments.
-  std::vector<std::string> args;
-  split(req, '/', &args);
-
-  // Format at this point should be  <relay>/<on>[/<params>]
-  if (args.size() < 2) {
-    ESP_LOGW(TAG, "Invalid relay switch request: Missing switch component.");
-    return false;
-  }
-
-  const std::string& relay_idx_str = args[0];
-  ESP_LOGI(TAG, "Switch relay idx '%s'", relay_idx_str.c_str());
-  char* pEnd = NULL;
-  int relay_idx = strtod(relay_idx_str.c_str(), &pEnd);
-  if (*pEnd) {
-    ESP_LOGW(TAG, "Invalid relay index.");
-    return false;
-  }
-
-  const std::string& relay_switch_cmd = args[1];
-  ESP_LOGI(TAG, "Switch command is '%s'", relay_switch_cmd.c_str());
-  if (relay_switch_cmd == "0") {
-    return relay_controller_->switch_on(relay_idx, false);
-  } else if (relay_switch_cmd == "1") {
-    return relay_controller_->switch_on(relay_idx, true);
-  } else if (relay_switch_cmd == "2") {
-    return relay_controller_->click(relay_idx);
-  } else if (relay_switch_cmd == "3") {
-    if (args.size() < 3) {
-      ESP_LOGW(TAG, "Invalid relay switch request: Command '3' needs param.");
-      return false;
-    }
-
-    // Parse the "click" parameter (the third request argument).
-    pEnd = NULL;
-    int click_delay_millis = strtod(args[2].c_str(), &pEnd);
-    if (*pEnd) {
-      ESP_LOGW(TAG, "Invalid 'click' parmeter. Must be an int.");
-      return false;
-    }
-    return relay_controller_->click(relay_idx, click_delay_millis);
-  } else {
-    ESP_LOGW(TAG, "Invalid relay switch value.");
-    return false;
-  }
-}
-
-// /io/temp/[idx]
-float Server::get_temperature(const std::string& req) {
-  ESP_LOGI(TAG, "Get temperature '%s'", req.c_str());
-
-  // TODO: Turn this into a method, return an optional/null.
-  char* pEnd = NULL;
-  int temp_idx = strtod(req.c_str(), &pEnd);
-  if (*pEnd) {
-    ESP_LOGW(TAG, "Cannot parse temperature sensor index.");
-    return -1;
-  }
-  return temp_controller_->getCelsius(temp_idx);
-}
-
-// /io/hum/[idx]
-float Server::get_humidity(const std::string& req) {
-  ESP_LOGI(TAG, "Get humidity '%s'", req.c_str());
-
-  // TODO: Turn this into a method, return an optional/null.
-  char* pEnd = NULL;
-  int temp_idx = strtod(req.c_str(), &pEnd);
-  if (*pEnd) {
-    ESP_LOGW(TAG, "Cannot parse humidty sensor index.");
-    return -1;
-  }
-  return temp_controller_->getHumidity(temp_idx);
-}
-
-// /io/hall/[idx]
-int Server::get_hall_effect(const std::string& req) {
-  ESP_LOGI(TAG, "Get hall effect '%s'", req.c_str());
-
-  // TODO: Turn this into a method, return an optional/null.
-  char* pEnd = NULL;
-  int hall_idx = strtod(req.c_str(), &pEnd);
-  if (*pEnd) {
-    ESP_LOGW(TAG, "Cannot parse hall efect sensor index.");
-    return -1;
-  }
-  return hall_controller_->getValue(hall_idx);
 }

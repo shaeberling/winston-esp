@@ -7,36 +7,23 @@
 #include <esp_err.h>
 #include <esp_http_server.h>
 
-#include "hall_effect_controller.h"
-#include "reed_controller.h"
-#include "relay_controller.h"
-#include "temp_controller.h"
+#include "request_handler.h"
 
 class Server {
  public:
-  Server(int port, ReedController* reed_controller,
-         RelayController* relay_controller,
-         TempController* temp_controller,
-         HallEffectController* hall_controller);
+  Server(int port, RequestHandler* request_handler);
   bool start();
   void stop();
 
  private:
   int port_;
   httpd_handle_t server_;
-  ReedController* reed_controller_;
-  RelayController* relay_controller_;
-  TempController* temp_controller_;
-  HallEffectController* hall_controller_;
+  RequestHandler* request_handler_;
+
   httpd_uri_t io_handler_;
 
   static esp_err_t io_get_handler(httpd_req_t *req);
   esp_err_t handle_io(httpd_req_t *req);
-  bool is_reed_closed(const std::string& req);
-  bool switch_relay(const std::string& req);
-  float get_temperature(const std::string& req);
-  float get_humidity(const std::string& req);
-  int get_hall_effect(const std::string& req);
 };
 
 #endif /* _WINSTON_SERVER_H_ */

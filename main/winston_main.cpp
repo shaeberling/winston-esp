@@ -21,6 +21,7 @@
 #include "locking.h"
 #include "reed_controller.h"
 #include "relay_controller.h"
+#include "request_handler.h"
 #include "server.h"
 #include "temp_controller.h"
 #include "ui_controller.h"
@@ -43,6 +44,7 @@ HallEffectController* hall_controller;
 DisplayController* display_controller;
 UiController* ui_controller;
 HTU21DController* htu21d_controller;
+RequestHandler* request_handler;
 
 Server* server = NULL;
 Wifi* wifi;
@@ -55,8 +57,7 @@ void onWifiConnected() {
     ESP_LOGI(TAG, "Webserver stopped.");
   }
   ESP_LOGI(TAG, "Wifi connected. Starting webserver ...");
-  server = new Server(SERVER_PORT, reed_controller, relay_controller,
-                      temp_controller, hall_controller);
+  server = new Server(SERVER_PORT, request_handler);
   if (server->start()) {
     ESP_LOGI(TAG, "Webserver successfully started.");
   } else {
@@ -112,6 +113,8 @@ void app_main(void) {
   hall_controller = new HallEffectController();
   display_controller = new DisplayController(GPIO_NUM_22, GPIO_NUM_21, locking);
   ui_controller = new UiController(display_controller);
+  request_handler = new RequestHandler(reed_controller, relay_controller,
+                                       temp_controller, hall_controller);
 
   initNvs();
   ESP_LOGI(TAG, "NVS initialized. Connecting to Wifi...");
@@ -120,7 +123,7 @@ void app_main(void) {
 
   // Note: This will change ADC config and will use up some pins around 36.
   // TODO: Make this a start-up config parameter.
-  // hall_controller->init();
+  hall_controller->init();
   // TODO: Add an sdkconfig variable about activating it or not (same for other modules).
   display_controller->init();
   ui_controller->init();
