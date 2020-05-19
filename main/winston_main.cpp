@@ -123,7 +123,7 @@ void app_main(void) {
 
   // Note: This will change ADC config and will use up some pins around 36.
   // TODO: Make this a start-up config parameter.
-  hall_controller->init();
+  // hall_controller->init();
   // TODO: Add an sdkconfig variable about activating it or not (same for other modules).
   display_controller->init();
   ui_controller->init();
