@@ -1,11 +1,12 @@
 #include "htu21d_controller.h"
 
+#include "locking.h"
 #include <sstream>
 #include "driver/gpio.h"
 #include "driver/i2c.h"
 #include "esp_log.h"
 
-static const char *TAG = "htu21d-ctrl";
+static const char* TAG = "htu21d-ctrl";
 
 static const int HTU21D_ADDR = 0x40;
 
@@ -13,9 +14,12 @@ static const int HTU21D_ADDR = 0x40;
 static const int TEMP_NO_HOLD_MASTER = 0xF3;
 static const int HUMI_NO_HOLD_MASTER = 0xF5;
 
-HTU21DController::HTU21DController(const gpio_num_t scl, const gpio_num_t sda) :
+HTU21DController::HTU21DController(const gpio_num_t scl,
+                                   const gpio_num_t sda,
+                                   Locking* locking) :
     gpio_scl_(scl),
     gpio_sda_(sda),
+    locking_(locking),
     initialized_(false) {
 }
 
@@ -25,14 +29,19 @@ bool HTU21DController::init() {
     return false;
   }
   esp_err_t ret;
+
+  if (!this->locking_->lockI2C(TAG)) {
+    ESP_LOGE(TAG, "Cannot lock I2C bus access.");
+    return false;
+  }
   
   // I2C basic setup.
   i2c_config_t conf;
   conf.mode = I2C_MODE_MASTER;
   conf.sda_io_num = this->gpio_sda_;
   conf.scl_io_num = this->gpio_scl_;
-  conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
-  conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
+  conf.sda_pullup_en = GPIO_PULLUP_ONLY;
+  conf.scl_pullup_en = GPIO_PULLUP_ONLY;
   conf.master.clk_speed = 100000;
   ret = i2c_param_config(I2C_NUM_0, &conf);
   if (ret != ESP_OK) {
@@ -58,6 +67,11 @@ bool HTU21DController::init() {
   }
   ESP_LOGI(TAG, "Link to HTU21D established.");
   initialized_ = true;
+
+  if (!this->locking_->unlockI2C(TAG)) {
+    ESP_LOGE(TAG, "Cannot unlock I2C bus access.");
+    return false;
+  }
   return true;
 }
 
@@ -68,7 +82,7 @@ float HTU21DController::getCelsius() {
     return 0;
   }
   // See page 15 of the htu21d_datasheet.pdf for details on this:
-  float result = getRaw(TEMP_NO_HOLD_MASTER);
+  float result = getRawWithLock(TEMP_NO_HOLD_MASTER);
   result *= 175.72;
   result /= (2 << 15);
   result -= 46.85;
@@ -81,7 +95,7 @@ float HTU21DController::getHumidity() {
     return 0;
   }
   // See page 15 of the htu21d_datasheet.pdf for details on this:
-  float result = getRaw(HUMI_NO_HOLD_MASTER);
+  float result = getRawWithLock(HUMI_NO_HOLD_MASTER);
   result *= 125;
   result /= (2 << 15);
   result -= 6;
@@ -89,14 +103,28 @@ float HTU21DController::getHumidity() {
 }
 
 // private
+int HTU21DController::getRawWithLock(int command) {
+  if (!this->locking_->lockI2C(TAG)) {
+    ESP_LOGE(TAG, "Cannot lock I2C bus access.");
+    return 0;
+  }
+  int value = this->getRaw(command);
+    if (!this->locking_->unlockI2C(TAG)) {
+    ESP_LOGE(TAG, "Cannot unlock I2C bus access.");
+    return 0;
+  }
+  return value;
+}
+
 int HTU21DController::getRaw(int command) {
+  esp_err_t ret;
   // Sending command to request value.
   i2c_cmd_handle_t cmd = i2c_cmd_link_create();
   i2c_master_start(cmd);
   i2c_master_write_byte(cmd, (HTU21D_ADDR << 1) | I2C_MASTER_WRITE, true);
   i2c_master_write_byte(cmd, command, true);
   i2c_master_stop(cmd);
-  esp_err_t ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
+  ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
   i2c_cmd_link_delete(cmd);
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "Cannot write request command to HTU21D.");
@@ -120,6 +148,7 @@ int HTU21DController::getRaw(int command) {
     ESP_LOGE(TAG, "Cannot read response from HTU21D.");
     return 0;
   }
+
   // TODO: Use CRC to ensure result is correct. (See specsheet p.14).
   return ((msb << 8) + lsb) & 0xFFFC;
 }

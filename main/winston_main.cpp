@@ -18,6 +18,7 @@
 #include "events.h"
 #include "hall_effect_controller.h"
 #include "htu21d_controller.h"
+#include "locking.h"
 #include "reed_controller.h"
 #include "relay_controller.h"
 #include "server.h"
@@ -34,6 +35,7 @@ static const char *TAG = "winston-main";
 ESP_EVENT_DEFINE_BASE(WINSTON_EVENT);
 namespace {
 
+Locking* locking;
 ReedController* reed_controller;
 RelayController* relay_controller;
 TempController* temp_controller;
@@ -95,6 +97,8 @@ void app_main(void) {
   ESP_ERROR_CHECK(esp_event_handler_register(WINSTON_EVENT, WIFI_CONNECTED,
                                              &event_handler, NULL));
 
+  locking = new Locking();
+
   // TODO: Make these configurable through flags.
   // Note: GPIO-5 should not be used for the relay (outputs PWM on startup).
   // See usable GPIOs here:
@@ -103,10 +107,10 @@ void app_main(void) {
   reed_controller = new ReedController(reed_mapping);
   std::vector<int> relay_mapping = { 26, 25 };
   relay_controller = new RelayController(relay_mapping);
-  htu21d_controller = new HTU21DController(GPIO_NUM_22, GPIO_NUM_21);
+  htu21d_controller = new HTU21DController(GPIO_NUM_22, GPIO_NUM_21, locking);
   temp_controller = new TempController(htu21d_controller);
   hall_controller = new HallEffectController();
-  display_controller = new DisplayController(GPIO_NUM_22, GPIO_NUM_21);
+  display_controller = new DisplayController(GPIO_NUM_22, GPIO_NUM_21, locking);
   ui_controller = new UiController(display_controller);
 
   initNvs();
@@ -120,8 +124,7 @@ void app_main(void) {
   // TODO: Add an sdkconfig variable about activating it or not (same for other modules).
   display_controller->init();
   ui_controller->init();
-  htu21d_controller->init();
-
+  // htu21d_controller->init();
 }
 
 } // extern "C"

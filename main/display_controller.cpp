@@ -1,11 +1,12 @@
 #include "display_controller.h"
 
+#include "locking.h"
 #include <sstream>
 #include "esp_log.h"
 #include "fonts.h"
 #include "ssd1306.hpp"
 
-static const char *TAG = "display-ctrl";
+static const char* TAG = "display-ctrl";
 
 namespace {
 static const char* wifiStrings[] = {
@@ -21,9 +22,12 @@ const char* getWifiString(int val) {
 // Note: With 5 pixel-wide font, we can fit 21 chars with 2 pixel buffers.
 // Note: the color version of this display has 16 pixels of yellow, a little gap
 //       and 48 blue lines.
-DisplayController::DisplayController(const gpio_num_t scl, const gpio_num_t sda) :
+DisplayController::DisplayController(const gpio_num_t scl,
+                                     const gpio_num_t sda,
+                                     Locking* locking) :
     gpio_scl_(scl),
     gpio_sda_(sda),
+    locking_(locking),
     panel_type_(SSD1306_128x64),
     oled_(NULL),
     wifi_status_(DISPLAY_WIFI_NOT_CONNECTED),
@@ -32,7 +36,12 @@ DisplayController::DisplayController(const gpio_num_t scl, const gpio_num_t sda)
 
 void DisplayController::init() {
   if (oled_ != NULL) {
-
+    ESP_LOGE(TAG, "DisplayController already initialized.");
+    return;
+  }
+  if (!this->locking_->lockI2C(TAG)) {
+    ESP_LOGE(TAG, "Cannot lock I2C bus access.");
+    return;
   }
 
   // These are the default GPIOs for the ESP32 WROOM board.
@@ -45,12 +54,20 @@ void DisplayController::init() {
     ESP_LOGE(TAG, "Failed to initialize OLED.");
     active_ = false;
   }
+  if (!this->locking_->unlockI2C(TAG)) {
+    ESP_LOGE(TAG, "Cannot unlock I2C bus access.");
+    return;
+  }
   update();
 }
 
 // private
 void DisplayController::update() {
   if (!active_) {
+    return;
+  }
+  if (!this->locking_->lockI2C(TAG)) {
+    ESP_LOGE(TAG, "Cannot lock I2C bus access.");
     return;
   }
   oled_->clear();
@@ -64,6 +81,11 @@ void DisplayController::update() {
   ip_str << "IP  : " << this->ip_address_;
   oled_->draw_string(2, 28, ip_str.str(), WHITE, BLACK);
   oled_->refresh(true);
+  if (!this->locking_->unlockI2C(TAG)) {
+    ESP_LOGE(TAG, "Cannot unlock I2C bus access.");
+    return;
+  }
+  ESP_LOGI(TAG, "IP is: %s", ip_str.str().c_str());
 }
 
 void DisplayController::setWifiStatus(WifiStatus status) {
