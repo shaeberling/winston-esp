@@ -32,11 +32,13 @@ void split(const std::string& str,
 RequestHandler::RequestHandler(ReedController* reed_controller,
                                RelayController* relay_controller,
                                TempController* temp_controller,
-                               HallEffectController* hall_controller)
+                               HallEffectController* hall_controller,
+                               TimeController* time_controller)
     : reed_controller_(reed_controller),
       relay_controller_(relay_controller),
       temp_controller_(temp_controller),
-      hall_controller_(hall_controller) {
+      hall_controller_(hall_controller),
+      time_controller_(time_controller) {
 }
 
 std::string RequestHandler::handle(const std::string& uri) {
@@ -53,6 +55,7 @@ std::string RequestHandler::handle(const std::string& uri) {
   const std::string temp_path = "/temp/";
   const std::string hum_path = "/hum/";
   const std::string hall_path = "/hall/";
+  const std::string time_path = "/time/";
 
   if (requestStr.rfind(reed_path, 0) == 0) {
     std::string req_data(requestStr.substr(reed_path.length()));
@@ -73,6 +76,9 @@ std::string RequestHandler::handle(const std::string& uri) {
     std::string req_data(requestStr.substr(hall_path.length()));
     int value = get_hall_effect(req_data);
     return std::to_string(value);
+  } else if (requestStr.rfind(time_path, 0) == 0) {
+    std::string req_data(requestStr.substr(time_path.length()));
+    return get_time(req_data);
   } else {
     return "Hello, Winston ESP here.";
   }
@@ -186,4 +192,13 @@ int RequestHandler::get_hall_effect(const std::string& req) {
     return -1;
   }
   return hall_controller_->getValue(hall_idx);
+}
+
+// /io/time/
+std::string RequestHandler::get_time(const std::string& req) {
+  ESP_LOGI(TAG, "Geting time");
+
+  // Parameters not used right now. Could use it to get different things
+  // like date, day, month, time, timezone etc. But no need for this right now.
+  return time_controller_->getTimeAndDate();
 }

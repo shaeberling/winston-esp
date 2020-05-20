@@ -1,15 +1,20 @@
 menu "Winston Config"
 
-    config ESP_WIFI_SSID
+    config WINSTON_WIFI_SSID
         string "WiFi SSID"
         default ""
         help
             SSID (network name) for the Winston to connect to.
 
-    config ESP_WIFI_PASSWORD
+    config WINSTON_WIFI_PASSWORD
         string "WiFi Password"
         default ""
         help
             WiFi password (WPA or WPA2) for the Winston to use.
 
+    config WINSTON_TIMEZONE
+        string "Timezone (Posix format)"
+        default "PST8PDT"
+        help
+            Timezone in POSIX format used when setting system time.
 endmenu

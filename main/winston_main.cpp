@@ -20,11 +20,14 @@
 #include "request_handler.h"
 #include "server.h"
 #include "temp_controller.h"
+#include "time_controller.h"
 #include "ui_controller.h"
 #include "wifi.h"
 
-#define WIFI_SSID   CONFIG_ESP_WIFI_SSID
-#define WIFI_PASS   CONFIG_ESP_WIFI_PASSWORD
+#define WIFI_SSID   CONFIG_WINSTON_WIFI_SSID
+#define WIFI_PASS   CONFIG_WINSTON_WIFI_PASSWORD
+#define TIMEZONE    CONFIG_WINSTON_TIMEZONE
+
 #define SERVER_PORT 80
 #define USE_MONGOOSE true
 
@@ -41,6 +44,7 @@ HallEffectController* hall_controller;
 DisplayController* display_controller;
 UiController* ui_controller;
 HTU21DController* htu21d_controller;
+TimeController* time_controller;
 RequestHandler* request_handler;
 
 std::unique_ptr<Server> server;
@@ -86,6 +90,9 @@ void onWifiConnected() {
       ESP_LOGE(TAG, "Starting the webserver failed.");
     }
   }
+
+  ESP_LOGI(TAG, "Triggering NTP sync");
+  time_controller->syncWithNtp();
 }
 
 void event_handler(void* arg, esp_event_base_t event_base, 
@@ -136,8 +143,10 @@ void app_main(void) {
   hall_controller = new HallEffectController();
   display_controller = new DisplayController(GPIO_NUM_22, GPIO_NUM_21, locking);
   ui_controller = new UiController(display_controller);
+  time_controller = new TimeController(TIMEZONE);
   request_handler = new RequestHandler(reed_controller, relay_controller,
-                                       temp_controller, hall_controller);
+                                       temp_controller, hall_controller,
+                                       time_controller);
 
   initNvs();
   ESP_LOGI(TAG, "NVS initialized. Connecting to Wifi...");

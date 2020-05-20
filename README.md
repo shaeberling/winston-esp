@@ -39,8 +39,10 @@ Note: If you are running this on WSL using Windows 10, while having your ESP32 d
 ### 0.3 (beta in progress)
  - Support for HTU21D temperature sensor ✓
  - Support for HTU21D humidity sensor ✓
+ - Support to get local time through REST interface ✓
  - Switch web server to mongoose to increase stability ✓
  - Introduce locking mechanism and apply to I2C ✓
+ - NTP time sync support ✓
  - Show free heap memory on display ⌛
  - Display sensor data on display if available ⌛
 
