@@ -4,8 +4,6 @@
 #define _WINSTON_MONGOOSE_SERVER_H_
 
 #include <string>
-#include <esp_err.h>
-#include <esp_http_server.h>
 
 #include "request_handler.h"
 
