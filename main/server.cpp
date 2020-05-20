@@ -18,25 +18,16 @@
 #include "esp_http_server.h"
 #include "request_handler.h"
 
-static const char *TAG = "winston-server";
 
 namespace {
+
+static const char *TAG = "winston-server";
 
 esp_err_t http_404_error_handler(httpd_req_t *req, httpd_err_code_t err) {
   ESP_LOGI(TAG, "404 ERROR");
   httpd_resp_send_err(req, HTTPD_404_NOT_FOUND,
                       "I'm sorry, Dave, I'm afraid I can't do that.");
   return ESP_OK;
-}
-
-void split(const std::string& str,
-           const char delim,
-           std::vector<std::string>* items) {
-  std::stringstream ss(str);
-  std::string token;
-  while (std::getline(ss, token, delim)) {
-      items->push_back(token);
-  }
 }
 
 }  // namespace
