@@ -1,9 +1,4 @@
-/* WiFi station Example
-   This example code is in the Public Domain (or CC0 licensed, at your option.)
-   Unless required by applicable law or agreed to in writing, this
-   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-   CONDITIONS OF ANY KIND, either express or implied.
-*/
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -19,6 +14,7 @@
 #include "hall_effect_controller.h"
 #include "htu21d_controller.h"
 #include "locking.h"
+#include "mongoose_server.h"
 #include "reed_controller.h"
 #include "relay_controller.h"
 #include "request_handler.h"
@@ -30,6 +26,7 @@
 #define WIFI_SSID   CONFIG_ESP_WIFI_SSID
 #define WIFI_PASS   CONFIG_ESP_WIFI_PASSWORD
 #define SERVER_PORT 80
+#define USE_MONGOOSE true
 
 static const char *TAG = "winston-main";
 
@@ -46,22 +43,48 @@ UiController* ui_controller;
 HTU21DController* htu21d_controller;
 RequestHandler* request_handler;
 
-Server* server = NULL;
+std::unique_ptr<Server> server;
+std::unique_ptr<MongooseServer> mg_server;
 Wifi* wifi;
 
 /** Called when WIFI connected (we have an IP). */
 void onWifiConnected() {
-  if (server != NULL) {
+  // Note: "server" is using the ESP built-in httpd implementation. We had a few
+  // issues with this. At randmon times, it seems to stop responding when being
+  // queried from a mobile Chrome browser.
+  // We therefore implemented an alternative using mongoose to see if this
+  // eleviates the issue.
+  // During this evaluation, both implementations are available here.
+  if (server) {
     ESP_LOGI(TAG, "Stopping previously started webserver...");
     server->stop();
     ESP_LOGI(TAG, "Webserver stopped.");
   }
+  if (mg_server) {
+    ESP_LOGI(TAG, "Stopping previously started mongoose server...");
+    mg_server->stop();
+    ESP_LOGI(TAG, "Mongoose server stopped.");
+  }
+
   ESP_LOGI(TAG, "Wifi connected. Starting webserver ...");
-  server = new Server(SERVER_PORT, request_handler);
-  if (server->start()) {
-    ESP_LOGI(TAG, "Webserver successfully started.");
+  if (USE_MONGOOSE) {
+    mg_server.reset(new MongooseServer(SERVER_PORT, request_handler));
   } else {
-    ESP_LOGE(TAG, "Starting the webserver failed.");
+    server.reset(new Server(SERVER_PORT, request_handler));
+  }
+
+  if (USE_MONGOOSE) {
+    if (mg_server->start()) {
+      ESP_LOGI(TAG, "Mongoose server successfully started.");
+    } else {
+      ESP_LOGE(TAG, "Starting the Mongoose server failed.");
+    }
+  } else {
+    if (server->start()) {
+      ESP_LOGI(TAG, "Webserver successfully started.");
+    } else {
+      ESP_LOGE(TAG, "Starting the webserver failed.");
+    }
   }
 }
 
