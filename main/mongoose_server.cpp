@@ -56,13 +56,11 @@ bool MongooseServer::start() {
 
 // public
 void MongooseServer::stop() {
-  ESP_LOGI(TAG, "Stopping Mongoose server ...");
   stop_ = true;
   const auto delay_millis = 100;
   while (stop_) {
     vTaskDelay(delay_millis / portTICK_PERIOD_MS);
   }
-  ESP_LOGI(TAG, "Mongoose server stopped.");
 }
 
 // private static
