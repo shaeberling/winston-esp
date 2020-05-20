@@ -3,6 +3,7 @@ idf_component_register(SRCS "winston_main.cpp"
                             "htu21d_controller.cpp"
                             "display_controller.cpp"
                             "locking.cpp"
+                            "mongoose_server.cpp"
                             "reed_controller.cpp"
                             "relay_controller.cpp"
                             "request_handler.cpp"
@@ -14,4 +15,5 @@ idf_component_register(SRCS "winston_main.cpp"
                        REQUIRES main
                                 nvs_flash
                                 esp_http_server
-                                esp32-i2c-ssd1306-oled)
+                                esp32-i2c-ssd1306-oled
+                                mongoose)
