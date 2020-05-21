@@ -35,16 +35,17 @@ Note: If you are running this on WSL using Windows 10, while having your ESP32 d
  - Set up a wifi hotspot to configure wifi connection ⌛
  - OTA support (no more plugging it in to update) ⌛
  - Receive config through REST call (which sensors, which pins etc) ⌛
+ - Display sensor data on display if available ⌛
 
-### 0.3 (beta in progress)
+### 0.3 ✓
  - Support for HTU21D temperature sensor ✓
  - Support for HTU21D humidity sensor ✓
  - Support to get local time through REST interface ✓
  - Switch web server to mongoose to increase stability ✓
  - Introduce locking mechanism and apply to I2C ✓
  - NTP time sync support ✓
- - Show free heap memory on display ⌛
- - Display sensor data on display if available ⌛
+ - Show and update date and time on display ✓
+ - Show free heap memory on display ✓
 
 ### v0.2 ✓
  - Repeated Wifi retry mechanism: Will restart until connected
