@@ -19,10 +19,10 @@ class MongooseServer {
   struct mg_mgr* mgr_;
   bool stop_;
 
-  static void mg_loop_task(void* p);
-  void start_loop();
-  static void mg_ev_handler(struct mg_connection* conn, int ev, void *p);
-  void handle_request(struct mg_connection* conn, struct http_message* hm);
+  static void mgLoopTask(void* p);
+  void startLoop();
+  static void mgEvHandler(struct mg_connection* conn, int ev, void *p);
+  void handleRequest(struct mg_connection* conn, struct http_message* hm);
 };
 
 #endif /* _WINSTON_MONGOOSE_SERVER_H_ */
