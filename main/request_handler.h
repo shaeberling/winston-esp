@@ -9,31 +9,35 @@
 #include "reed_controller.h"
 #include "relay_controller.h"
 #include "request_handler.h"
+#include "system_controller.h"
 #include "temp_controller.h"
 #include "time_controller.h"
 
 // Routes incoming requests.
 class RequestHandler {
  public:
-  RequestHandler(ReedController* reed_controller,
-                 RelayController* relay_controller,
-                 TempController* temp_controller,
-                 HallEffectController* hall_controller,
-                 TimeController* time_controller);
+  RequestHandler(ReedController* reed,
+                 RelayController* relay,
+                 TempController* temp,
+                 HallEffectController* hall,
+                 TimeController* time,
+                 SystemController* system);
   std::string handle(const std::string& uri);
  private:
-  ReedController* reed_controller_;
-  RelayController* relay_controller_;
-  TempController* temp_controller_;
-  HallEffectController* hall_controller_;
-  TimeController* time_controller_;
+  ReedController* reed_;
+  RelayController* relay_;
+  TempController* temp_;
+  HallEffectController* hall_;
+  TimeController* time_;
+  SystemController* system_;
 
-  bool is_reed_closed(const std::string& req);
-  bool switch_relay(const std::string& req);
-  float get_temperature(const std::string& req);
-  float get_humidity(const std::string& req);
-  int get_hall_effect(const std::string& req);
-  std::string get_time(const std::string& req);
+  bool isReedClosed(const std::string& req);
+  bool switchRelay(const std::string& req);
+  float getTemperature(const std::string& req);
+  float getHumidity(const std::string& req);
+  int getHallEffect(const std::string& req);
+  std::string getTime(const std::string& req);
+  std::string getSystemValue(const std::string& req);
 };
 
 #endif /* _WINSTON_REQUEST_HANDLER_H_ */

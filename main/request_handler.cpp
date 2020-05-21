@@ -10,8 +10,9 @@
 #include "reed_controller.h"
 #include "relay_controller.h"
 #include "request_handler.h"
+#include "system_controller.h"
 #include "temp_controller.h"
-
+#include "time_controller.h"
 
 namespace {
 
@@ -29,16 +30,18 @@ void split(const std::string& str,
 
 }  // namespace
 
-RequestHandler::RequestHandler(ReedController* reed_controller,
-                               RelayController* relay_controller,
-                               TempController* temp_controller,
-                               HallEffectController* hall_controller,
-                               TimeController* time_controller)
-    : reed_controller_(reed_controller),
-      relay_controller_(relay_controller),
-      temp_controller_(temp_controller),
-      hall_controller_(hall_controller),
-      time_controller_(time_controller) {
+RequestHandler::RequestHandler(ReedController* reed,
+                               RelayController* relay,
+                               TempController* temp,
+                               HallEffectController* hall,
+                               TimeController* time,
+                               SystemController* system)
+    : reed_(reed),
+      relay_(relay),
+      temp_(temp),
+      hall_(hall),
+      time_(time),
+      system_(system) {
 }
 
 std::string RequestHandler::handle(const std::string& uri) {
@@ -56,36 +59,40 @@ std::string RequestHandler::handle(const std::string& uri) {
   const std::string hum_path = "/hum/";
   const std::string hall_path = "/hall/";
   const std::string time_path = "/time/";
+  const std::string system_path = "/system/";
 
   if (requestStr.rfind(reed_path, 0) == 0) {
     std::string req_data(requestStr.substr(reed_path.length()));
-    return is_reed_closed(req_data) ? "1" : "0";
+    return isReedClosed(req_data) ? "1" : "0";
   } else if (requestStr.rfind(relay_path, 0) == 0) {
     std::string req_data(requestStr.substr(relay_path.length()));
-    bool success = switch_relay(req_data);
+    bool success = switchRelay(req_data);
     return success ? "OK" : "FAIL";
   } else if (requestStr.rfind(temp_path, 0) == 0) {
     std::string req_data(requestStr.substr(temp_path.length()));
-    float temperature = get_temperature(req_data);
+    float temperature = getTemperature(req_data);
     return std::to_string(temperature);
   } else if (requestStr.rfind(hum_path, 0) == 0) {
     std::string req_data(requestStr.substr(hum_path.length()));
-    float humidity = get_humidity(req_data);
+    float humidity = getHumidity(req_data);
     return std::to_string(humidity);
   } else if (requestStr.rfind(hall_path, 0) == 0) {
     std::string req_data(requestStr.substr(hall_path.length()));
-    int value = get_hall_effect(req_data);
+    int value = getHallEffect(req_data);
     return std::to_string(value);
   } else if (requestStr.rfind(time_path, 0) == 0) {
     std::string req_data(requestStr.substr(time_path.length()));
-    return get_time(req_data);
+    return getTime(req_data);
+  } else if (requestStr.rfind(system_path, 0) == 0) {
+    std::string req_data(requestStr.substr(system_path.length()));
+    return getSystemValue(req_data);
   } else {
     return "Hello, Winston ESP here.";
   }
 }
 
 // /io/reed/[idx]
-bool RequestHandler::is_reed_closed(const std::string& req) {
+bool RequestHandler::isReedClosed(const std::string& req) {
   ESP_LOGI(TAG, "Geet reed status for '%s'", req.c_str());
   char* pEnd = NULL;
   int reed_idx = strtod(req.c_str(), &pEnd);
@@ -93,7 +100,7 @@ bool RequestHandler::is_reed_closed(const std::string& req) {
     ESP_LOGW(TAG, "Invalid reed index.");
     return false;
   }
-  return reed_controller_->is_closed(reed_idx);
+  return reed_->is_closed(reed_idx);
 }
 
 // /io/relay/[idx]/[0,1,2,3]
@@ -102,7 +109,7 @@ bool RequestHandler::is_reed_closed(const std::string& req) {
 // 1 = TURN ON
 // 2 = CLICK WITH DEFAULT DELAY
 // 3 = CLICK WITH SPECIFIED DELAY (IN MILLIS).
-bool RequestHandler::switch_relay(const std::string& req) {
+bool RequestHandler::switchRelay(const std::string& req) {
   ESP_LOGI(TAG, "Switch relay '%s'", req.c_str());
 
   // Extract the arguments.
@@ -127,11 +134,11 @@ bool RequestHandler::switch_relay(const std::string& req) {
   const std::string& relay_switch_cmd = args[1];
   ESP_LOGI(TAG, "Switch command is '%s'", relay_switch_cmd.c_str());
   if (relay_switch_cmd == "0") {
-    return relay_controller_->switch_on(relay_idx, false);
+    return relay_->switch_on(relay_idx, false);
   } else if (relay_switch_cmd == "1") {
-    return relay_controller_->switch_on(relay_idx, true);
+    return relay_->switch_on(relay_idx, true);
   } else if (relay_switch_cmd == "2") {
-    return relay_controller_->click(relay_idx);
+    return relay_->click(relay_idx);
   } else if (relay_switch_cmd == "3") {
     if (args.size() < 3) {
       ESP_LOGW(TAG, "Invalid relay switch request: Command '3' needs param.");
@@ -145,7 +152,7 @@ bool RequestHandler::switch_relay(const std::string& req) {
       ESP_LOGW(TAG, "Invalid 'click' parmeter. Must be an int.");
       return false;
     }
-    return relay_controller_->click(relay_idx, click_delay_millis);
+    return relay_->click(relay_idx, click_delay_millis);
   } else {
     ESP_LOGW(TAG, "Invalid relay switch value.");
     return false;
@@ -153,7 +160,7 @@ bool RequestHandler::switch_relay(const std::string& req) {
 }
 
 // /io/temp/[idx]
-float RequestHandler::get_temperature(const std::string& req) {
+float RequestHandler::getTemperature(const std::string& req) {
   ESP_LOGI(TAG, "Get temperature '%s'", req.c_str());
 
   // TODO: Turn this into a method, return an optional/null.
@@ -163,11 +170,11 @@ float RequestHandler::get_temperature(const std::string& req) {
     ESP_LOGW(TAG, "Cannot parse temperature sensor index.");
     return -1;
   }
-  return temp_controller_->getCelsius(temp_idx);
+  return temp_->getCelsius(temp_idx);
 }
 
 // /io/hum/[idx]
-float RequestHandler::get_humidity(const std::string& req) {
+float RequestHandler::getHumidity(const std::string& req) {
   ESP_LOGI(TAG, "Get humidity '%s'", req.c_str());
 
   // TODO: Turn this into a method, return an optional/null.
@@ -177,11 +184,11 @@ float RequestHandler::get_humidity(const std::string& req) {
     ESP_LOGW(TAG, "Cannot parse humidty sensor index.");
     return -1;
   }
-  return temp_controller_->getHumidity(temp_idx);
+  return temp_->getHumidity(temp_idx);
 }
 
 // /io/hall/[idx]
-int RequestHandler::get_hall_effect(const std::string& req) {
+int RequestHandler::getHallEffect(const std::string& req) {
   ESP_LOGI(TAG, "Get hall effect '%s'", req.c_str());
 
   // TODO: Turn this into a method, return an optional/null.
@@ -191,14 +198,23 @@ int RequestHandler::get_hall_effect(const std::string& req) {
     ESP_LOGW(TAG, "Cannot parse hall efect sensor index.");
     return -1;
   }
-  return hall_controller_->getValue(hall_idx);
+  return hall_->getValue(hall_idx);
 }
 
 // /io/time/
-std::string RequestHandler::get_time(const std::string& req) {
+std::string RequestHandler::getTime(const std::string& req) {
   ESP_LOGI(TAG, "Geting time");
 
   // Parameters not used right now. Could use it to get different things
   // like date, day, month, time, timezone etc. But no need for this right now.
-  return time_controller_->getDateAndTime();
+  return time_->getDateAndTime();
+}
+
+// /io/sys/[parameter]
+std::string RequestHandler::getSystemValue(const std::string& req) {
+  if (req.find("heap") == 0) {
+    return std::to_string(system_->getFreeHeapBytes() / 1024) +  " KB";
+  } else {
+    return "Unknown parameter for 'system'.";
+  }
 }

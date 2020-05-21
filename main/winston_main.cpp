@@ -45,6 +45,7 @@ DisplayController* display_controller;
 UiController* ui_controller;
 HTU21DController* htu21d_controller;
 TimeController* time_controller;
+SystemController* system_controller;
 RequestHandler* request_handler;
 
 std::unique_ptr<Server> server;
@@ -143,10 +144,13 @@ void app_main(void) {
   hall_controller = new HallEffectController();
   display_controller = new DisplayController(GPIO_NUM_22, GPIO_NUM_21, locking);
   time_controller = new TimeController(TIMEZONE);
-  ui_controller = new UiController(display_controller, time_controller);
+  system_controller = new SystemController();
+  ui_controller = new UiController(display_controller,
+                                   time_controller,
+                                   system_controller);
   request_handler = new RequestHandler(reed_controller, relay_controller,
                                        temp_controller, hall_controller,
-                                       time_controller);
+                                       time_controller, system_controller);
 
   initNvs();
   ESP_LOGI(TAG, "NVS initialized. Connecting to Wifi...");

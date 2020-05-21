@@ -22,9 +22,11 @@ static const char *TAG = "win-ui-ctrl";
 static const int UI_UPDATE_DELAY_MILLIS = 10000;
 
 UiController::UiController(DisplayController* display,
-                           TimeController* time_controller)
+                           TimeController* time,
+                           SystemController* system)
     : display_(display),
-      time_controller_(time_controller),
+      time_(time),
+      system_(system),
       initiated_(false),
       connection_attempts_(0) {
 }
@@ -93,7 +95,8 @@ void UiController::event_handler(void* arg, esp_event_base_t event_base,
 void UiController::onUpdateUi() {
   // Only update things that need to be polled here. For everything else, we
   // listen to events above and update the UI accordingly.
-  this->display_->setDateAndTime(time_controller_->getDateAndTime(6));
+  this->display_->setDateAndTime(time_->getDateAndTime(6));
+  this->display_->setFreeHeapBytes(system_->getFreeHeapBytes());
 }
 
 // private static

@@ -8,16 +8,20 @@
 #include "esp_event.h"
 
 #include "display_controller.h"
+#include "system_controller.h"
 #include "time_controller.h"
 
 class UiController {
  public:
-  UiController(DisplayController* display, TimeController* time_controller);
+  UiController(DisplayController* display,
+               TimeController* time_controller,
+               SystemController* system_controller);
   // Enables listening to events to update display contents.
   void init();
  private:
   DisplayController* display_;
-  TimeController* time_controller_;
+  TimeController* time_;
+  SystemController* system_;
 
   bool initiated_;
   int connection_attempts_;
