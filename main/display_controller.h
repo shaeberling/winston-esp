@@ -21,6 +21,7 @@ class DisplayController {
   void init();
   void setWifiStatus(WifiStatus status);
   void setIpAddress(const std::string& address);
+  void setDateAndTime(const std::string& date_time);
  private:
   const gpio_num_t gpio_scl_;
   const gpio_num_t gpio_sda_;
@@ -32,6 +33,7 @@ class DisplayController {
 
   WifiStatus wifi_status_;
   std::string ip_address_;
+  std::string date_time_;
 
   void update();
 };

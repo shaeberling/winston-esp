@@ -38,15 +38,20 @@ void TimeController::syncWithNtp() {
   sntp_init();
 }
 
-std::string TimeController::getTimeAndDate() {
+std::string TimeController::getDateAndTime() {
+  return this->getDateAndTime(1);
+}
+
+std::string TimeController::getDateAndTime(int infix_spaces) {
   time_t now;
   struct tm t;
   time(&now);
   localtime_r(&now, &t);
 
   char buffer[50];
-  std::sprintf(buffer, "%04d/%02d/%02d %02d:%02d",
+  std::sprintf(buffer, "%04d/%02d/%02d%*c%02d:%02d",
                t.tm_year + 1900, t.tm_mon + 1, t.tm_mday,
+               infix_spaces, ' ',
                t.tm_hour, t.tm_min);
   return std::string(buffer);
 }

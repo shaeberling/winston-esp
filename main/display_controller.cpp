@@ -20,8 +20,8 @@ const char* getWifiString(int val) {
 }
 
 // Note: With 5 pixel-wide font, we can fit 21 chars with 2 pixel buffers.
-// Note: the color version of this display has 16 pixels of yellow, a little gap
-//       and 48 blue lines.
+// Note: Vertically, the color version of this display has 16 pixels of yellow,
+//       a little gap and 48 blue lines.
 DisplayController::DisplayController(const gpio_num_t scl,
                                      const gpio_num_t sda,
                                      Locking* locking) :
@@ -72,20 +72,30 @@ void DisplayController::update() {
   }
   oled_->clear();
   oled_->select_font(0);
-  oled_->fill_rectangle(0, 0, oled_->get_width(), 16, WHITE);
-  oled_->draw_string(2, 4, "Winston-ESP beta v0.3", BLACK, WHITE);
+
+  // Header.
+  oled_->fill_rectangle(0, 0, oled_->get_width(), 11, WHITE);
+  oled_->draw_string(2, 2, "Winston-ESP beta v0.3", BLACK, WHITE);
+
+  // WIFI status.
   std::ostringstream wifi_str;
   wifi_str << "Wifi: " << getWifiString(this->wifi_status_);
   oled_->draw_string(2, 20, wifi_str.str(), WHITE, BLACK);
+
+  // IP address.
   std::ostringstream ip_str;
   ip_str << "IP  : " << this->ip_address_;
   oled_->draw_string(2, 28, ip_str.str(), WHITE, BLACK);
+
+  // Footer with time and date.
+  oled_->fill_rectangle(0, 55, oled_->get_width(), 9, WHITE);
+  oled_->draw_string(2, 56, date_time_, BLACK, WHITE);
+
   oled_->refresh(true);
   if (!this->locking_->unlockI2C(TAG)) {
     ESP_LOGE(TAG, "Cannot unlock I2C bus access.");
     return;
   }
-  ESP_LOGI(TAG, "IP is: %s", ip_str.str().c_str());
 }
 
 void DisplayController::setWifiStatus(WifiStatus status) {
@@ -95,5 +105,10 @@ void DisplayController::setWifiStatus(WifiStatus status) {
 
 void DisplayController::setIpAddress(const std::string& address) {
   this->ip_address_ = address;
+  update();
+}
+
+void DisplayController::setDateAndTime(const std::string& date_time) {
+  this->date_time_ = date_time;
   update();
 }

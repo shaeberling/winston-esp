@@ -9,7 +9,9 @@ class TimeController {
  public:
   TimeController(const std::string& timezone);
   void syncWithNtp();
-  std::string getTimeAndDate();
+  std::string getDateAndTime();
+  // Defines amount of padding between date and time.
+  std::string getDateAndTime(int infix_spaces);
 
  private:
   std::string timezone_;

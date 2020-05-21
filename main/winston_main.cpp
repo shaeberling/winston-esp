@@ -142,8 +142,8 @@ void app_main(void) {
   temp_controller = new TempController(htu21d_controller);
   hall_controller = new HallEffectController();
   display_controller = new DisplayController(GPIO_NUM_22, GPIO_NUM_21, locking);
-  ui_controller = new UiController(display_controller);
   time_controller = new TimeController(TIMEZONE);
+  ui_controller = new UiController(display_controller, time_controller);
   request_handler = new RequestHandler(reed_controller, relay_controller,
                                        temp_controller, hall_controller,
                                        time_controller);

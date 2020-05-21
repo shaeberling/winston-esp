@@ -200,5 +200,5 @@ std::string RequestHandler::get_time(const std::string& req) {
 
   // Parameters not used right now. Could use it to get different things
   // like date, day, month, time, timezone etc. But no need for this right now.
-  return time_controller_->getTimeAndDate();
+  return time_controller_->getDateAndTime();
 }

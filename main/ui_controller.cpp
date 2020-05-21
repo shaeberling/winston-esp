@@ -14,11 +14,19 @@
 #include "esp_log.h"
 
 #include "display_controller.h"
+#include "time_controller.h"
 
 static const char *TAG = "win-ui-ctrl";
 
-UiController::UiController(DisplayController* display)
-    : display_(display), initiated_(false), connection_attempts_(0) {
+// Update non-event-driven UI items once very 10 seconds.
+static const int UI_UPDATE_DELAY_MILLIS = 10000;
+
+UiController::UiController(DisplayController* display,
+                           TimeController* time_controller)
+    : display_(display),
+      time_controller_(time_controller),
+      initiated_(false),
+      connection_attempts_(0) {
 }
 
 void UiController::init() {
@@ -32,9 +40,15 @@ void UiController::init() {
   registerEvent(WIFI_EVENT, ESP_EVENT_ANY_ID);
   registerEvent(IP_EVENT, IP_EVENT_STA_GOT_IP);
   registerEvent(WINSTON_EVENT, WIFI_CONNECTED);
+
+  auto rt = xTaskCreatePinnedToCore(
+     UiController::startUpdateLoop, "ui-updater", 5000, this, 1, NULL, 0);
+  if (rt != pdPASS) {
+   ESP_LOGE(TAG, "Cannot create UI update task.");
+  }
 }
 
-//non-static
+// private
 void UiController::onEvent(esp_event_base_t event_base, 
                            int32_t event_id, void* event_data) {
   if (event_base == WINSTON_EVENT && event_id == WIFI_CONNECTED) {
@@ -62,14 +76,30 @@ void UiController::onEvent(esp_event_base_t event_base,
   }
 }
 
+// private
 void UiController::registerEvent(esp_event_base_t event_base, int32_t event_id) {
   ESP_ERROR_CHECK(
     esp_event_handler_register(event_base, event_id,
                                &UiController::event_handler, this));
 }
 
-// static
+// private static
 void UiController::event_handler(void* arg, esp_event_base_t event_base, 
                                  int32_t event_id, void* event_data) {
   static_cast<UiController*>(arg)->onEvent(event_base, event_id, event_data);
+}
+
+// private
+void UiController::onUpdateUi() {
+  // Only update things that need to be polled here. For everything else, we
+  // listen to events above and update the UI accordingly.
+  this->display_->setDateAndTime(time_controller_->getDateAndTime(6));
+}
+
+// private static
+void UiController::startUpdateLoop(void* p) {
+  while (true) {
+    static_cast<UiController*>(p)->onUpdateUi();
+    vTaskDelay(UI_UPDATE_DELAY_MILLIS / portTICK_PERIOD_MS);
+  }
 }
