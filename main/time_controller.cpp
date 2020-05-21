@@ -34,6 +34,10 @@ void TimeController::syncWithNtp() {
 
   sntp_setoperatingmode(SNTP_OPMODE_POLL);
   sntp_setservername(0, "pool.ntp.org");
+  sntp_setservername(1, "europe.pool.ntp.org");
+  sntp_setservername(2, "uk.pool.ntp.org ");
+  sntp_setservername(3, "us.pool.ntp.org");
+  sntp_setservername(4, "time1.google.com");
   sntp_set_time_sync_notification_cb(time_sync_notification_cb);
   sntp_init();
 }
