@@ -58,7 +58,6 @@ std::string RequestHandler::handle(const std::string& uri) {
   const std::string temp_path = "/temp/";
   const std::string hum_path = "/hum/";
   const std::string hall_path = "/hall/";
-  const std::string time_path = "/time/";
   const std::string system_path = "/system/";
 
   if (requestStr.rfind(reed_path, 0) == 0) {
@@ -80,9 +79,6 @@ std::string RequestHandler::handle(const std::string& uri) {
     std::string req_data(requestStr.substr(hall_path.length()));
     int value = getHallEffect(req_data);
     return std::to_string(value);
-  } else if (requestStr.rfind(time_path, 0) == 0) {
-    std::string req_data(requestStr.substr(time_path.length()));
-    return getTime(req_data);
   } else if (requestStr.rfind(system_path, 0) == 0) {
     std::string req_data(requestStr.substr(system_path.length()));
     return getSystemValue(req_data);
@@ -201,19 +197,14 @@ int RequestHandler::getHallEffect(const std::string& req) {
   return hall_->getValue(hall_idx);
 }
 
-// /io/time/
-std::string RequestHandler::getTime(const std::string& req) {
-  ESP_LOGI(TAG, "Geting time");
-
-  // Parameters not used right now. Could use it to get different things
-  // like date, day, month, time, timezone etc. But no need for this right now.
-  return time_->getDateAndTime();
-}
-
 // /io/sys/[parameter]
 std::string RequestHandler::getSystemValue(const std::string& req) {
   if (req.find("heap") == 0) {
     return std::to_string(system_->getFreeHeapBytes() / 1024) +  " KB";
+  } else if (req.find("time") == 0) {
+    return time_->getDateAndTime();
+  } else if (req.find("stats") == 0) {
+    return system_->getRunTimeStats();
   } else {
     return "Unknown parameter for 'system'.";
   }

@@ -36,7 +36,6 @@ class RequestHandler {
   float getTemperature(const std::string& req);
   float getHumidity(const std::string& req);
   int getHallEffect(const std::string& req);
-  std::string getTime(const std::string& req);
   std::string getSystemValue(const std::string& req);
 };
 
