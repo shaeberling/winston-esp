@@ -12,6 +12,19 @@
 #include "mongoose.h"
 #include "request_handler.h"
 
+namespace {
+
+int countActiveConnections(struct mg_mgr* mgr) {
+  int count = 0;
+  for (struct mg_connection *nc = mgr->active_connections;
+       nc != NULL; nc = nc->next) {
+    count++;
+  }
+  return count;
+}
+
+}  // namespace
+
 
 static const char *TAG = "winston-mongoose-server";
 
@@ -66,6 +79,7 @@ void MongooseServer::mgLoopTask(void* p) {
 void MongooseServer::startLoop() {
   while (!stop_) {
     mg_mgr_poll(mgr_, 1000);
+    // ESP_LOGI(TAG, "Active connections: %d.", countActiveConnections(mgr_));
   }
   mg_mgr_free(mgr_);
   stop_ = false;
@@ -82,10 +96,12 @@ void MongooseServer::mgEvHandler(struct mg_connection *conn, int ev, void *p) {
 
 // private
 void MongooseServer::handleRequest(struct mg_connection* conn,
-                                    struct http_message* hm) {
+                                   struct http_message* hm) {
   std::string uri = std::string(hm->uri.p, hm->uri.len);
   auto resp_str = this->request_handler_->handle(uri);
+  int code = resp_str == "Bad request." ? 400 : 200;
 
-  mg_send_head(conn, 200, resp_str.length(), "Content-Type: text/plain");
+  mg_send_head(conn, code, resp_str.length(), "Content-Type: text/plain\r\n"
+                                              "Connection: close");
   mg_printf(conn, "%.*s", (int)resp_str.length(), resp_str.c_str());
 }
