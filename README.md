@@ -32,33 +32,35 @@ Note: If you are running this on WSL using Windows 10, while having your ESP32 d
 ## Version history
 
 ### 0.4  (in progress)
+ - Added `/io/system/info` call for basic system information ✓
+ - Added `/io/system/restart` to restart the system ✓
  - Display sensor data on display if available ⌛
  - Receive config through REST call (which sensors, which pins etc) ⌛
- - Move timezone setting to be dynamic, instead of compile time. ⌛
+ - Move timezone setting to be dynamic, instead of compile time ⌛
  - Set up a wifi hotspot to configure wifi connection ⌛
  - OTA support (no more plugging it in to update) ⌛
 
 ### 0.3.1 ✓
- - Fix for webserver becoming unavailable: Ask clients to not keep connections alive. ✓
- - Added `/io/system/stats` with task stats to help debugging. ✓
+ - Fix for webserver becoming unavailable: Ask clients to not keep connections alive
+ - Added `/io/system/stats` with task stats to help debugging
   - Note that this needs new config options to prevent linker errors.
- - Move `/io/time` to `/io/system/time` ✓
- - Note: `sdkconfig.defaults` used instead of `sdkconfig`. This means a wifi password will not get accidentally submitted. ✓
+ - Move `/io/time` to `/io/system/time`
+ - Note: `sdkconfig.defaults` used instead of `sdkconfig`. This means a wifi password will not get accidentally submitted
 
 ### 0.3 ✓
- - Support for HTU21D temperature sensor ✓
- - Support for HTU21D humidity sensor ✓
- - Support to get local time through REST interface ✓
- - Switch web server to mongoose to increase stability ✓
- - Introduce locking mechanism and apply to I2C ✓
- - NTP time sync support ✓
- - Show and update date and time on display ✓
- - Show free heap memory on display ✓
+ - Support for HTU21D temperature sensor
+ - Support for HTU21D humidity sensor
+ - Support to get local time through REST interface
+ - Switch web server to mongoose to increase stability
+ - Introduce locking mechanism and apply to I2C
+ - NTP time sync support
+ - Show and update date and time on display
+ - Show free heap memory on display
 
 ### v0.2 ✓
  - Repeated Wifi retry mechanism: Will restart until connected
  - First version of a ui controller to show wifi/network info on screen
- - Support for ssd1306 controlled displays.
+ - Support for ssd1306 controlled displays
  - Support for built-in temperature sensor (seems quite inaccurate)
  - Support for built-in hall effect sensor
  - Added new call for relays ("3" or "click") with parameter for duration

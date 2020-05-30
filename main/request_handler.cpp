@@ -205,6 +205,14 @@ std::string RequestHandler::getSystemValue(const std::string& req) {
     return time_->getDateAndTime();
   } else if (req.find("stats") == 0) {
     return system_->getRunTimeStats();
+  } else if (req.find("info") == 0) {
+    return system_->getSystemInfo();
+  } else if (req.find("restart") == 0) {
+    // Restart in 5 seconds so that we can first serve the response.
+    // If the browser waits for the response, it might request it again
+    // and again, resulting in a boot loop. Granted, this should not be
+    // an issue if this is accessed through a REST API.
+    return system_->restart(5000) ? "OK" : "ERROR";
   } else {
     return "Unknown parameter for 'system'.";
   }

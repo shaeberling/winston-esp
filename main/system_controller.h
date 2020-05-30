@@ -14,6 +14,12 @@ class SystemController {
 
   // See vTaskGetRunTimeStats documentation.
   std::string getRunTimeStats();
+
+  // Reboots the ESP.
+  bool restart(int delay_millis);
+
+  // Returns information about the system and H/W features.
+  std::string getSystemInfo();
 };
 
 #endif /* _WINSTON_SYSTEM_H_ */
