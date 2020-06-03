@@ -34,6 +34,8 @@ Note: If you are running this on WSL using Windows 10, while having your ESP32 d
 ### 0.4  (in progress)
  - Added `/io/system/info` call for basic system information ✓
  - Added `/io/system/restart` to restart the system ✓
+ - Show MAC address on display ✓
+ - Make connection status more compact on display ✓
  - Display sensor data on display if available ⌛
  - Receive config through REST call (which sensors, which pins etc) ⌛
  - Move timezone setting to be dynamic, instead of compile time ⌛
