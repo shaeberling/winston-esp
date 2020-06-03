@@ -20,6 +20,9 @@ class SystemController {
 
   // Returns information about the system and H/W features.
   std::string getSystemInfo();
+
+  // Get MAC address.
+  std::string getMacAddress();
 };
 
 #endif /* _WINSTON_SYSTEM_H_ */

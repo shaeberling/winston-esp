@@ -8,6 +8,7 @@
 #include "esp_log.h"
 #include "esp_spi_flash.h"
 #include "esp_system.h"
+#include "esp_wifi.h"
 #include "sdkconfig.h"
 
 static const char *TAG = "win-system";
@@ -55,4 +56,12 @@ std::string SystemController::getSystemInfo() {
   output << "BLE      : " << ((info.features & CHIP_FEATURE_BLE) ? "Yes" : "No")
          << "\n";
   return output.str();
+}
+
+std::string SystemController::getMacAddress() {
+  uint8_t mac[6];
+  esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
+  char buf[20];
+  sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+  return buf;
 }
