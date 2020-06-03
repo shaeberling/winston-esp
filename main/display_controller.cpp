@@ -17,7 +17,47 @@ static const char* wifiStrings[] = {
 const char* getWifiString(int val) {
   return wifiStrings[val];
 };
-}
+
+void customSpacingText(OLED* oled,
+                       int start_x,
+                       int y,
+                       const std::string& text,
+                       char ch,
+                       int sp_reduction_left,
+                       int sp_reduction_right) {
+  // First paint the colons. Since we're making them slimmer,
+  // if we painted them later they would erase pixels within
+  // their dimensions that belong to other characters.
+  int x = start_x;
+  for (int i = 0; i < text.length(); ++i) {
+    if (text[i] == ch) x -= sp_reduction_left;
+    if (text[i] == ch) {
+      oled->draw_char(x, y, text[i], WHITE, BLACK);
+    }
+    x += 6;
+    if (text[i] == ch) x -= sp_reduction_right;
+  }
+  x = start_x;
+  for (int i = 0; i < text.length(); ++i) {
+    if (text[i] == ch) x -= sp_reduction_left;
+    if (text[i] != ch) {
+      oled->draw_char(x, y, text[i], WHITE, BLACK);
+    }
+    x += 6;
+    if (text[i] == ch) x -= sp_reduction_right;
+  }
+};
+
+void customSpacingText(OLED* oled,
+                       int start_x,
+                       int y,
+                       const std::string& text,
+                       char ch,
+                       int sp_reduction) {
+  customSpacingText(oled, start_x, y, text, ch, sp_reduction, sp_reduction);
+};
+
+}  // namespace
 
 // Note: With 5 pixel-wide font, we can fit 21 chars with 2 pixel buffers.
 // Note: Vertically, the color version of this display has 16 pixels of yellow,
@@ -31,7 +71,8 @@ DisplayController::DisplayController(const gpio_num_t scl,
     panel_type_(SSD1306_128x64),
     oled_(NULL),
     wifi_status_(DISPLAY_WIFI_NOT_CONNECTED),
-    ip_address_("N/A") {
+    ip_address_("N/A"),
+    mac_address_("00:00:00:00:00:00") {
 }
 
 void DisplayController::init() {
@@ -75,24 +116,36 @@ void DisplayController::update() {
 
   // Header.
   oled_->fill_rectangle(0, 0, oled_->get_width(), 11, WHITE);
-  oled_->draw_string(2, 2, "Winston-ESP    v0.3.1", BLACK, WHITE);
+  oled_->draw_string(2, 2, "Winston-ESP  v0.4-dev", BLACK, WHITE);
 
-  // WIFI status.
-  std::ostringstream wifi_str;
-  wifi_str << "Wifi: " << getWifiString(this->wifi_status_);
-  oled_->draw_string(2, 16, wifi_str.str(), WHITE, BLACK);
+  const int column_2_start = 6*4 + 2 + 1;
+  const int col_3_start = 6*7 + 2 + 2;
 
-  // IP address.
-  std::ostringstream ip_str;
-  ip_str << "IP  : " << this->ip_address_;
-  oled_->draw_string(2, 24, ip_str.str(), WHITE, BLACK);
+  oled_->draw_hline(0, 36, oled_->get_width(), WHITE);
 
   // Free heap space display.
-  oled_->fill_rectangle(0, 37, 6*4 + 3, 9, WHITE);
+  oled_->fill_rectangle(0, 37, 6*4 + 1, 9, WHITE);
   oled_->draw_vline(0, 46, 9, WHITE);
-  oled_->draw_vline(6*4 + 2, 46, 9, WHITE);
-  oled_->draw_string(2, 39, "HEAP", BLACK, WHITE);
+  oled_->draw_vline(column_2_start - 1, 46, 9, WHITE);
+  oled_->draw_string(1, 38, "HEAP", BLACK, WHITE);
   oled_->draw_string(2, 47, heap_free_msg_, WHITE, BLACK);
+
+  // IP address / network status.
+  oled_->fill_rectangle(column_2_start - 1, 37, 6*3 + 1, 9, WHITE);
+  oled_->draw_string(column_2_start, 38, "CON", BLACK, WHITE);
+  if (wifi_status_ == DISPLAY_WIFI_CONNECTED) {
+    customSpacingText(oled_, col_3_start, 38, ip_address_, '.', 2, 1);
+  } else {
+    oled_->draw_string(col_3_start, 38,
+                       getWifiString(wifi_status_), WHITE, BLACK);
+  }
+
+  // Print MAC address. Custom spacing to make it fit (thinner colons).
+  oled_->fill_rectangle(column_2_start - 1, 46, 6*3 + 1, 9, WHITE);
+  oled_->draw_string(column_2_start, 47, "MAC", BLACK, WHITE);
+  customSpacingText(oled_, col_3_start, 47, mac_address_, ':', 2);
+
+  oled_->draw_vline(oled_->get_width() - 1, 37, 18, WHITE);
 
   // Footer with time and date.
   oled_->fill_rectangle(0, 55, oled_->get_width(), 9, WHITE);
@@ -112,6 +165,11 @@ void DisplayController::setWifiStatus(WifiStatus status) {
 
 void DisplayController::setIpAddress(const std::string& address) {
   this->ip_address_ = address;
+  update();
+}
+
+void DisplayController::setMacAddress(const std::string& mac) {
+  this->mac_address_ = mac;
   update();
 }
 

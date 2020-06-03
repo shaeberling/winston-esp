@@ -48,6 +48,9 @@ void UiController::init() {
   if (rt != pdPASS) {
    ESP_LOGE(TAG, "Cannot create UI update task.");
   }
+
+  // The MAC address never changes, so set it only once.
+  display_->setMacAddress(system_->getMacAddress());
 }
 
 // private

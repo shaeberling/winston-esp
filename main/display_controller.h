@@ -21,6 +21,7 @@ class DisplayController {
   void init();
   void setWifiStatus(WifiStatus status);
   void setIpAddress(const std::string& address);
+  void setMacAddress(const std::string& mac);
   void setDateAndTime(const std::string& date_time);
   void setFreeHeapBytes(int freeBytes);
  private:
@@ -34,6 +35,7 @@ class DisplayController {
 
   WifiStatus wifi_status_;
   std::string ip_address_;
+  std::string mac_address_;
   std::string date_time_;
   std::string heap_free_msg_;
 
