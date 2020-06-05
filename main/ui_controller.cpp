@@ -14,6 +14,7 @@
 #include "esp_log.h"
 
 #include "display_controller.h"
+#include "temp_controller.h"
 #include "time_controller.h"
 
 static const char *TAG = "win-ui-ctrl";
@@ -22,9 +23,11 @@ static const char *TAG = "win-ui-ctrl";
 static const int UI_UPDATE_DELAY_MILLIS = 10000;
 
 UiController::UiController(DisplayController* display,
+                           TempController* temp,
                            TimeController* time,
                            SystemController* system)
     : display_(display),
+      temp_(temp),
       time_(time),
       system_(system),
       initiated_(false),
@@ -100,8 +103,10 @@ void UiController::onUpdateUi() {
   // listen to events above and update the UI accordingly.
   this->display_->setDateAndTime(time_->getDateAndTime(6));
   this->display_->setFreeHeapBytes(system_->getFreeHeapBytes());
+  // Use external I2C sensor and its matching humidity sensor.
+  // (internal sensor is 0 but is bad.).
+  this->display_->setTempAndHumidity(temp_->getCelsius(1), temp_->getHumidity(0));
 }
-
 // private static
 void UiController::startUpdateLoop(void* p) {
   while (true) {

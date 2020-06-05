@@ -29,7 +29,7 @@
 #define TIMEZONE    CONFIG_WINSTON_TIMEZONE
 
 #define SERVER_PORT 80
-#define USE_MONGOOSE true
+#define USE_MONGOOSE false
 
 static const char *TAG = "winston-main";
 
@@ -139,13 +139,14 @@ void app_main(void) {
   reed_controller = new ReedController(reed_mapping);
   std::vector<int> relay_mapping = { 26, 25 };
   relay_controller = new RelayController(relay_mapping);
-  htu21d_controller = new HTU21DController(GPIO_NUM_22, GPIO_NUM_21, locking);
+  htu21d_controller = new HTU21DController(GPIO_NUM_17, GPIO_NUM_16, locking);
   temp_controller = new TempController(htu21d_controller);
   hall_controller = new HallEffectController();
   display_controller = new DisplayController(GPIO_NUM_22, GPIO_NUM_21, locking);
   time_controller = new TimeController(TIMEZONE);
   system_controller = new SystemController();
   ui_controller = new UiController(display_controller,
+                                   temp_controller,
                                    time_controller,
                                    system_controller);
   request_handler = new RequestHandler(reed_controller, relay_controller,
@@ -153,6 +154,8 @@ void app_main(void) {
                                        time_controller, system_controller);
 
   initNvs();
+  
+
   ESP_LOGI(TAG, "NVS initialized. Connecting to Wifi...");
   wifi = new Wifi;
   wifi->connect(WIFI_SSID, WIFI_PASS);
@@ -163,7 +166,7 @@ void app_main(void) {
   // TODO: Add an sdkconfig variable about activating it or not (same for other modules).
   display_controller->init();
   ui_controller->init();
-  // htu21d_controller->init();
+  htu21d_controller->init();
 }
 
 } // extern "C"
