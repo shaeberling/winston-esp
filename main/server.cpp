@@ -78,6 +78,8 @@ esp_err_t Server::io_get_handler(httpd_req_t *req) {
 esp_err_t Server::handle_io(httpd_req_t *req) {
   std::string uri(req->uri);
   auto resp_str = this->request_handler_->handle(uri);
+  httpd_resp_set_hdr(req, "Content-Type", "text/plain");
+  httpd_resp_set_hdr(req, "Connection", "close");
   httpd_resp_send(req, resp_str.c_str(), resp_str.length()); 
   return ESP_OK;
 }
