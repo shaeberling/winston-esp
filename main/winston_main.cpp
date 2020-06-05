@@ -29,7 +29,7 @@
 #define TIMEZONE    CONFIG_WINSTON_TIMEZONE
 
 #define SERVER_PORT 80
-#define USE_MONGOOSE false
+#define USE_MONGOOSE true
 
 static const char *TAG = "winston-main";
 
