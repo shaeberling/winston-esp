@@ -1,7 +1,6 @@
 /* HTTP server for the Winston REST API. */
 #include "mongoose_server.h"
 
-#include <sstream>
 #include <string>
 #include <vector>
 
