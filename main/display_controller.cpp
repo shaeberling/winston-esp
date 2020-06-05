@@ -118,6 +118,12 @@ void DisplayController::update() {
   oled_->fill_rectangle(0, 0, oled_->get_width(), 11, WHITE);
   oled_->draw_string(2, 2, "Winston-ESP  v0.4-dev", BLACK, WHITE);
 
+  // Content area. Show sensor data.
+  char temp_hum_str[20];
+  sprintf(temp_hum_str, "%.1fC/%.1fRH", temp_celsius_, rel_humidity_);
+  oled_->draw_string(1, 16, temp_hum_str, WHITE, BLACK);
+
+  // Bottom stats section, heap, network info, ...
   const int column_2_start = 6*4 + 2 + 1;
   const int col_3_start = 6*7 + 2 + 2;
 
@@ -180,4 +186,9 @@ void DisplayController::setDateAndTime(const std::string& date_time) {
 
 void DisplayController::setFreeHeapBytes(int free_bytes) {
   this->heap_free_msg_ = std::to_string(free_bytes / 1024) +  "K";
+}
+
+void DisplayController::setTempAndHumidity(float celsius, float rel_hum) {
+  this->temp_celsius_ = celsius;
+  this->rel_humidity_ = rel_hum;
 }

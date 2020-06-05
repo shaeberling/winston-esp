@@ -23,7 +23,8 @@ class DisplayController {
   void setIpAddress(const std::string& address);
   void setMacAddress(const std::string& mac);
   void setDateAndTime(const std::string& date_time);
-  void setFreeHeapBytes(int freeBytes);
+  void setFreeHeapBytes(int free_bytes);
+  void setTempAndHumidity(float celsius, float rel_hum);
  private:
   const gpio_num_t gpio_scl_;
   const gpio_num_t gpio_sda_;
@@ -38,6 +39,8 @@ class DisplayController {
   std::string mac_address_;
   std::string date_time_;
   std::string heap_free_msg_;
+  float temp_celsius_;
+  float rel_humidity_;
 
   void update();
 };
