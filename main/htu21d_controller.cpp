@@ -34,7 +34,7 @@ bool HTU21DController::init() {
     ESP_LOGE(TAG, "Cannot lock I2C bus access.");
     return false;
   }
-  
+
   // I2C basic setup.
   i2c_config_t conf;
   conf.mode = I2C_MODE_MASTER;
@@ -66,12 +66,12 @@ bool HTU21DController::init() {
     return false;
   }
   ESP_LOGI(TAG, "Link to HTU21D established.");
-  initialized_ = true;
 
   if (!this->locking_->unlockI2C(TAG)) {
     ESP_LOGE(TAG, "Cannot unlock I2C bus access.");
     return false;
   }
+  initialized_ = true;
   return true;
 }
 
