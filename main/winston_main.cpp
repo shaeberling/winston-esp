@@ -16,6 +16,7 @@
 #include "locking.h"
 #include "mongoose_server.h"
 #include "mqtt_service.h"
+#include "pir_controller.h"
 #include "reed_controller.h"
 #include "relay_controller.h"
 #include "request_handler.h"
@@ -34,6 +35,8 @@
 #define SERVER_PORT 80
 #define USE_MONGOOSE true
 
+#define ESP_INTR_FLAG_DEFAULT 0
+
 static const char *TAG = "winston-main";
 
 ESP_EVENT_DEFINE_BASE(WINSTON_EVENT);
@@ -42,6 +45,7 @@ namespace {
 
 Locking* locking;
 ReedController* reed_controller;
+PIRController* pir_controller;
 RelayController* relay_controller;
 TempController* temp_controller;
 HallEffectController* hall_controller;
@@ -137,8 +141,12 @@ void app_main(void) {
   ESP_ERROR_CHECK(esp_event_handler_register(WINSTON_EVENT, WIFI_CONNECTED,
                                              &event_handler, NULL));
 
-  locking = new Locking();
+  // Install the driver’s GPIO ISR handler service, which allows per-pin GPIO
+  // interrupt handlers.
+  // This is e.g. used by the PIR sensor.
+  ESP_ERROR_CHECK(gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT));
 
+  locking = new Locking();
   mqtt = new MqttService(MQTT_SERVER, NODE_NAME);
 
   // TODO: Make these configurable through flags.
@@ -146,6 +154,7 @@ void app_main(void) {
   // See usable GPIOs here:
   // https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
   reed_controller = new ReedController({ 14, 27 });
+  pir_controller = new PIRController(GPIO_NUM_4);
   relay_controller = new RelayController({ 26, 25 });
   htu21d_controller = new HTU21DController(GPIO_NUM_17, GPIO_NUM_16, locking);
   temp_controller = new TempController(htu21d_controller);
@@ -173,6 +182,7 @@ void app_main(void) {
   display_controller->init();
   ui_controller->init();
   htu21d_controller->init();
+  pir_controller->init(); // Note: Needs interrupts.
 }
 
 } // extern "C"
