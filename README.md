@@ -31,16 +31,26 @@ Note: If you are running this on WSL using Windows 10, while having your ESP32 d
 
 ## Version history
 
-### 0.4  (in progress)
- - Added `/io/system/info` call for basic system information ✓
- - Added `/io/system/restart` to restart the system ✓
- - Show MAC address on display ✓
- - Make connection status more compact on display ✓
- - Display temp sensor data on display ✓
- - Receive config through REST call (which sensors, which pins etc) ⌛
+### 0.6 (planned)
+ - Receive config from master (which sensors, which pins etc, timezone) ⌛
  - Move timezone setting to be dynamic, instead of compile time ⌛
  - Set up a wifi hotspot to configure wifi connection ⌛
  - OTA support (no more plugging it in to update) ⌛
+
+### 0.5 (planned)
+ - Add support for deep sleep mode to enable battery operation ⌛
+
+### 0.4  (in progress)
+ - Revamped internal event system for modules to publish updates to both MQTT, the REST API as well as a connected screen ⌛
+ - Added `/io/system/info` call for basic system information ✓
+ - Added `/io/system/restart` to restart the system ✓
+ - Display: Show MAC address ✓
+ - Display: Make connection status more compact ✓
+ - Display: Show temp sensor data ✓
+ - Added support for PIR motion sensors through interrupts ✓
+ - Added support for MQTT, receiving and publishing ✓
+ - Added support for Bosch BME270 temp/humidity sensor ⌛
+ - Added support for Adafruit STEMMA Soil Sensor ⌛
 
 ### 0.3.1 ✓
  - Fix for webserver becoming unavailable: Ask clients to not keep connections alive
