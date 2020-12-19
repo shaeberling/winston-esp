@@ -4,6 +4,7 @@ idf_component_register(SRCS "winston_main.cpp"
                             "display_controller.cpp"
                             "locking.cpp"
                             "mongoose_server.cpp"
+                            "mqtt_service.cpp"
                             "reed_controller.cpp"
                             "relay_controller.cpp"
                             "request_handler.cpp"
@@ -18,4 +19,5 @@ idf_component_register(SRCS "winston_main.cpp"
                                 nvs_flash
                                 esp_http_server
                                 esp32-i2c-ssd1306-oled
-                                mongoose)
+                                mongoose
+                                mqtt)

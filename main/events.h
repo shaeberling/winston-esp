@@ -13,6 +13,15 @@ ESP_EVENT_DECLARE_BASE(WINSTON_EVENT);
 
 enum {
     WIFI_CONNECTED,
+    SENSOR_EVENT,
+};
+
+struct SensorUpdate {
+  // E.g. "/temp/1" or "/reed/0"
+  const std::string sensor_path;
+
+  // Numbers are encoded as strings.
+  const std::string value_str;
 };
 
 #ifdef __cplusplus

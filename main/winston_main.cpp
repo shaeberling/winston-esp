@@ -15,6 +15,7 @@
 #include "htu21d_controller.h"
 #include "locking.h"
 #include "mongoose_server.h"
+#include "mqtt_service.h"
 #include "reed_controller.h"
 #include "relay_controller.h"
 #include "request_handler.h"
@@ -24,9 +25,11 @@
 #include "ui_controller.h"
 #include "wifi.h"
 
-#define WIFI_SSID   CONFIG_WINSTON_WIFI_SSID
-#define WIFI_PASS   CONFIG_WINSTON_WIFI_PASSWORD
-#define TIMEZONE    CONFIG_WINSTON_TIMEZONE
+#define WIFI_SSID    CONFIG_WINSTON_WIFI_SSID
+#define WIFI_PASS    CONFIG_WINSTON_WIFI_PASSWORD
+#define TIMEZONE     CONFIG_WINSTON_TIMEZONE
+#define MQTT_SERVER  CONFIG_WINSTON_MQTT_SERVER
+#define NODE_NAME    CONFIG_WINSTON_NODE_NAME
 
 #define SERVER_PORT 80
 #define USE_MONGOOSE true
@@ -34,6 +37,7 @@
 static const char *TAG = "winston-main";
 
 ESP_EVENT_DEFINE_BASE(WINSTON_EVENT);
+
 namespace {
 
 Locking* locking;
@@ -48,6 +52,7 @@ TimeController* time_controller;
 SystemController* system_controller;
 RequestHandler* request_handler;
 
+MqttService* mqtt;
 std::unique_ptr<Server> server;
 std::unique_ptr<MongooseServer> mg_server;
 Wifi* wifi;
@@ -94,6 +99,9 @@ void onWifiConnected() {
 
   ESP_LOGI(TAG, "Triggering NTP sync");
   time_controller->syncWithNtp();
+
+  ESP_LOGI(TAG, "Initializing MQTT");
+  mqtt->init();
 }
 
 void event_handler(void* arg, esp_event_base_t event_base, 
@@ -131,14 +139,14 @@ void app_main(void) {
 
   locking = new Locking();
 
+  mqtt = new MqttService(MQTT_SERVER, NODE_NAME);
+
   // TODO: Make these configurable through flags.
   // Note: GPIO-5 should not be used for the relay (outputs PWM on startup).
   // See usable GPIOs here:
   // https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
-  std::vector<int> reed_mapping = { 14, 27 };
-  reed_controller = new ReedController(reed_mapping);
-  std::vector<int> relay_mapping = { 26, 25 };
-  relay_controller = new RelayController(relay_mapping);
+  reed_controller = new ReedController({ 14, 27 });
+  relay_controller = new RelayController({ 26, 25 });
   htu21d_controller = new HTU21DController(GPIO_NUM_17, GPIO_NUM_16, locking);
   temp_controller = new TempController(htu21d_controller);
   hall_controller = new HallEffectController();
@@ -152,9 +160,7 @@ void app_main(void) {
   request_handler = new RequestHandler(reed_controller, relay_controller,
                                        temp_controller, hall_controller,
                                        time_controller, system_controller);
-
   initNvs();
-  
 
   ESP_LOGI(TAG, "NVS initialized. Connecting to Wifi...");
   wifi = new Wifi;

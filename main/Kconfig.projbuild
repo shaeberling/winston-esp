@@ -11,7 +11,16 @@ menu "Winston Config"
         default ""
         help
             WiFi password (WPA or WPA2) for the Winston to use.
-
+    config WINSTON_NODE_NAME
+        string "Node Name"
+        default ""
+        help
+            The name of the node, used e.g. in MQTT events.
+    config WINSTON_MQTT_SERVER
+        string "MQTT server address"
+        default ""
+        help
+            Address of the MQTT service to post events to.
     config WINSTON_TIMEZONE
         string "Timezone (Posix format)"
         default "PST8PDT"
