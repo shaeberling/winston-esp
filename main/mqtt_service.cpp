@@ -68,7 +68,8 @@ void MqttService::onWinstonEvent(esp_event_base_t base,
 
   // The Winston MQTT schema: "winston/<node>/path"
   std::ostringstream topic;
-  topic << "winston/" << node_name_ << sensor_data->sensor_path;
+  topic << "winston/" << node_name_ << "/" << sensor_data->sensor_path;
+  ESP_LOGI(TAG, "Posting to topic: '%s'", topic.str().c_str());
   esp_mqtt_client_publish(client_, topic.str().c_str(),
                           sensor_data->value_str.c_str(), 0, 0, 0);
 }
