@@ -3,26 +3,31 @@
 #ifndef _WINSTON_SYSTEM_H_
 #define _WINSTON_SYSTEM_H_
 
+#include "controller.h"
+
 #include <string>
 
-class SystemController {
+class SystemController : public Controller {
  public:
   SystemController();
 
+  // From Controller interface, returns all "sensors".
+  std::vector<SensorConfig*> getSensors() const override;
+
   // Get the amount of free heap memory, in bytes.
-  int getFreeHeapBytes();
+  int getFreeHeapBytes() const;
 
   // See vTaskGetRunTimeStats documentation.
-  std::string getRunTimeStats();
+  std::string getRunTimeStats() const;
 
   // Reboots the ESP.
   bool restart(int delay_millis);
 
   // Returns information about the system and H/W features.
-  std::string getSystemInfo();
+  std::string getSystemInfo() const;
 
   // Get MAC address.
-  std::string getMacAddress();
+  std::string getMacAddress() const;
 };
 
 #endif /* _WINSTON_SYSTEM_H_ */

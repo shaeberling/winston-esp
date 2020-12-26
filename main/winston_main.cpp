@@ -188,6 +188,7 @@ void app_main(void) {
   pir_controller->init(); // Note: Needs interrupts.
 
   control_hub->registerController(*temp_controller);
+  control_hub->registerController(*system_controller);
 }
 
 } // extern "C"

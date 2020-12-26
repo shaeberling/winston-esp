@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 
+#include "controller.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
@@ -16,11 +17,26 @@ static const char *TAG = "win-system";
 SystemController::SystemController() {
 }
 
-int SystemController::getFreeHeapBytes() {
+// override
+std::vector<SensorConfig*> SystemController::getSensors() const {
+  std::vector<SensorConfig*> sensors;
+
+  auto* c = new SensorConfig {
+    .name = "sys-heap",
+    .idx = 0,
+    .update_interval_seconds = 60,
+    .get_value = [this](void){ return std::to_string(this->getFreeHeapBytes()); }
+  };
+  sensors.push_back(c);
+
+  return sensors;
+}
+
+int SystemController::getFreeHeapBytes() const {
   return esp_get_free_heap_size();
 }
 
-std::string SystemController::getRunTimeStats() {
+std::string SystemController::getRunTimeStats() const {
   char buffer[40 * 20];
   vTaskGetRunTimeStats(buffer);
   return std::string(buffer);
@@ -39,7 +55,7 @@ bool SystemController::restart(int delay_millis) {
   return rt == pdPASS;
 }
 
-std::string SystemController::getSystemInfo() {
+std::string SystemController::getSystemInfo() const {
   esp_chip_info_t info;
   esp_chip_info(&info);
 
@@ -58,7 +74,7 @@ std::string SystemController::getSystemInfo() {
   return output.str();
 }
 
-std::string SystemController::getMacAddress() {
+std::string SystemController::getMacAddress() const {
   uint8_t mac[6];
   esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
   char buf[20];

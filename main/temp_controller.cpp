@@ -5,7 +5,6 @@
 
 #include "esp_log.h"
 
-#include "control_hub.h"
 #include "controller.h"
 #include "htu21d_controller.h"
 
