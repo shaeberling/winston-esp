@@ -19,8 +19,8 @@ enum {
 struct SensorUpdate {
   // E.g. "/temp/1" or "/reed/0"
   const std::string sensor_path;
-
-  // Numbers are encoded as strings.
+  // The value as a string. If this represents a number, it needs to be
+  // converted.
   const std::string value_str;
 };
 
