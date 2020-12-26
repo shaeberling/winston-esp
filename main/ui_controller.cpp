@@ -14,20 +14,18 @@
 #include "esp_log.h"
 
 #include "display_controller.h"
-#include "temp_controller.h"
+#include "system_controller.h"
 #include "time_controller.h"
 
 static const char *TAG = "win-ui-ctrl";
 
-// Update non-event-driven UI items once very 10 seconds.
-static const int UI_UPDATE_DELAY_MILLIS = 10000;
+// Update non-event-driven UI items once very 5 seconds.
+static const int UI_UPDATE_DELAY_MILLIS = 5000;
 
 UiController::UiController(DisplayController* display,
-                           TempController* temp,
                            TimeController* time,
                            SystemController* system)
     : display_(display),
-      temp_(temp),
       time_(time),
       system_(system),
       initiated_(false),
@@ -45,6 +43,7 @@ void UiController::init() {
   registerEvent(WIFI_EVENT, ESP_EVENT_ANY_ID);
   registerEvent(IP_EVENT, IP_EVENT_STA_GOT_IP);
   registerEvent(WINSTON_EVENT, WIFI_CONNECTED);
+  registerEvent(WINSTON_EVENT, SENSOR_EVENT);
 
   auto rt = xTaskCreatePinnedToCore(
      UiController::startUpdateLoop, "ui-updater", 5000, this, 1, NULL, 0);
@@ -59,7 +58,16 @@ void UiController::init() {
 // private
 void UiController::onEvent(esp_event_base_t event_base, 
                            int32_t event_id, void* event_data) {
-  if (event_base == WINSTON_EVENT && event_id == WIFI_CONNECTED) {
+  if (event_base == WINSTON_EVENT && event_id == SENSOR_EVENT) {
+    auto* update = static_cast<SensorUpdate*>(event_data);
+
+    // 0 is the inaccurate internal sensor.
+    if (update->sensor_path == "temp/1") {
+      this->display_->setTemperature(std::stof(update->value_str));
+    } else if (update->sensor_path == "hum/0") {
+      this->display_->setHumidity(std::stof(update->value_str));
+    }
+  } else if (event_base == WINSTON_EVENT && event_id == WIFI_CONNECTED) {
     this->connection_attempts_ = 0;
     this->display_->setWifiStatus(DISPLAY_WIFI_CONNECTED);
   } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
@@ -99,13 +107,12 @@ void UiController::event_handler(void* arg, esp_event_base_t event_base,
 
 // private
 void UiController::onUpdateUi() {
-  // Only update things that need to be polled here. For everything else, we
-  // listen to events above and update the UI accordingly.
+  // Update things on a regular basis here.
+  // Only fetch things here for which we don't get regular events.
+  // Then ensure the display is updated with the new information.
   this->display_->setDateAndTime(time_->getDateAndTime(6));
   this->display_->setFreeHeapBytes(system_->getFreeHeapBytes());
-  // Use external I2C sensor and its matching humidity sensor.
-  // (internal sensor is 0 but is bad.).
-  this->display_->setTempAndHumidity(temp_->getCelsius(1), temp_->getHumidity(0));
+  this->display_->update();
 }
 // private static
 void UiController::startUpdateLoop(void* p) {

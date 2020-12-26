@@ -9,6 +9,7 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 
+#include "control_hub.h"
 #include "display_controller.h"
 #include "events.h"
 #include "hall_effect_controller.h"
@@ -44,6 +45,8 @@ ESP_EVENT_DEFINE_BASE(WINSTON_EVENT);
 namespace {
 
 Locking* locking;
+ControlHub* control_hub;
+
 ReedController* reed_controller;
 PIRController* pir_controller;
 RelayController* relay_controller;
@@ -147,6 +150,8 @@ void app_main(void) {
   ESP_ERROR_CHECK(gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT));
 
   locking = new Locking();
+  time_controller = new TimeController(TIMEZONE);
+  control_hub = new ControlHub();
   mqtt = new MqttService(MQTT_SERVER, NODE_NAME);
 
   // TODO: Make these configurable through flags.
@@ -160,10 +165,8 @@ void app_main(void) {
   temp_controller = new TempController(htu21d_controller);
   hall_controller = new HallEffectController();
   display_controller = new DisplayController(GPIO_NUM_22, GPIO_NUM_21, locking);
-  time_controller = new TimeController(TIMEZONE);
   system_controller = new SystemController();
   ui_controller = new UiController(display_controller,
-                                   temp_controller,
                                    time_controller,
                                    system_controller);
   request_handler = new RequestHandler(reed_controller, relay_controller,
@@ -183,6 +186,8 @@ void app_main(void) {
   ui_controller->init();
   htu21d_controller->init();
   pir_controller->init(); // Note: Needs interrupts.
+
+  control_hub->registerController(*temp_controller);
 }
 
 } // extern "C"

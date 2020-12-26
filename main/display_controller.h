@@ -24,7 +24,12 @@ class DisplayController {
   void setMacAddress(const std::string& mac);
   void setDateAndTime(const std::string& date_time);
   void setFreeHeapBytes(int free_bytes);
-  void setTempAndHumidity(float celsius, float rel_hum);
+  void setTemperature(float celsius);
+  void setHumidity(float rel_hum);
+
+  // Updates the display, rendering the current data.
+  void update();
+
  private:
   const gpio_num_t gpio_scl_;
   const gpio_num_t gpio_sda_;
@@ -41,8 +46,6 @@ class DisplayController {
   std::string heap_free_msg_;
   float temp_celsius_;
   float rel_humidity_;
-
-  void update();
 };
 
 #endif /* _WINSTON_DISPLAY_CONTROLLER_H_ */

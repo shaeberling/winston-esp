@@ -72,7 +72,11 @@ DisplayController::DisplayController(const gpio_num_t scl,
     oled_(NULL),
     wifi_status_(DISPLAY_WIFI_NOT_CONNECTED),
     ip_address_("N/A"),
-    mac_address_("00:00:00:00:00:00") {
+    mac_address_("00:00:00:00:00:00"),
+    date_time_(""),
+    heap_free_msg_(""),
+    temp_celsius_(0),
+    rel_humidity_(0) {
 }
 
 void DisplayController::init() {
@@ -102,7 +106,6 @@ void DisplayController::init() {
   update();
 }
 
-// private
 void DisplayController::update() {
   if (!active_) {
     return;
@@ -166,29 +169,28 @@ void DisplayController::update() {
 
 void DisplayController::setWifiStatus(WifiStatus status) {
   this->wifi_status_ = status;
-  update();
 }
 
 void DisplayController::setIpAddress(const std::string& address) {
   this->ip_address_ = address;
-  update();
 }
 
 void DisplayController::setMacAddress(const std::string& mac) {
   this->mac_address_ = mac;
-  update();
 }
 
 void DisplayController::setDateAndTime(const std::string& date_time) {
   this->date_time_ = date_time;
-  update();
 }
 
 void DisplayController::setFreeHeapBytes(int free_bytes) {
   this->heap_free_msg_ = std::to_string(free_bytes / 1024) +  "K";
 }
 
-void DisplayController::setTempAndHumidity(float celsius, float rel_hum) {
+void DisplayController::setTemperature(float celsius) {
   this->temp_celsius_ = celsius;
+}
+
+void DisplayController::setHumidity(float rel_hum) {
   this->rel_humidity_ = rel_hum;
 }
