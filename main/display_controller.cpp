@@ -6,7 +6,7 @@
 #include "fonts.h"
 #include "ssd1306.hpp"
 
-static const char* TAG = "display-ctrl";
+static const char* TAG = "win-disp-ctrl";
 
 namespace {
 static const char* wifiStrings[] = {
