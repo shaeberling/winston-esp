@@ -176,7 +176,7 @@ void app_main(void) {
 
   temp_controller = new TempController(htu21d_controller);
   hall_controller = new HallEffectController();
-  system_controller = new SystemController();
+  system_controller = new SystemController(settings.node_name);
   ui_controller = new UiController(display_controller,
                                    time_controller,
                                    system_controller);

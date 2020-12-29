@@ -53,6 +53,7 @@ void UiController::init() {
 
   // The MAC address never changes, so set it only once.
   display_->setMacAddress(system_->getMacAddress());
+  display_->setNodeName(system_->getNodeName());
 }
 
 // private

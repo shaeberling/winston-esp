@@ -70,6 +70,7 @@ DisplayController::DisplayController(const gpio_num_t scl,
     locking_(locking),
     panel_type_(SSD1306_128x64),
     oled_(NULL),
+    node_name_("[node name]"),
     wifi_status_(DISPLAY_WIFI_NOT_CONNECTED),
     ip_address_("N/A"),
     mac_address_("00:00:00:00:00:00"),
@@ -126,6 +127,9 @@ void DisplayController::update() {
   sprintf(temp_hum_str, "%.1fC/%.1fRH", temp_celsius_, rel_humidity_);
   oled_->draw_string(1, 16, temp_hum_str, WHITE, BLACK);
 
+  // Show node name at the bottom of the content area.
+  oled_->draw_string(1, 26, node_name_, WHITE, BLACK);
+
   // Bottom stats section, heap, network info, ...
   const int column_2_start = 6*4 + 2 + 1;
   const int col_3_start = 6*7 + 2 + 2;
@@ -165,6 +169,10 @@ void DisplayController::update() {
     ESP_LOGE(TAG, "Cannot unlock I2C bus access.");
     return;
   }
+}
+
+void DisplayController::setNodeName(const std::string& node_name) {
+  this->node_name_ = node_name;
 }
 
 void DisplayController::setWifiStatus(WifiStatus status) {

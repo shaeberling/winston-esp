@@ -9,7 +9,7 @@
 
 class SystemController : public Controller {
  public:
-  SystemController();
+  SystemController(const std::string& node_name);
 
   // From Controller interface, returns all "sensors".
   std::vector<SensorConfig*> getSensors() const override;
@@ -28,6 +28,12 @@ class SystemController : public Controller {
 
   // Get MAC address.
   std::string getMacAddress() const;
+
+  // Get the node's name.
+  std::string getNodeName() const;
+
+ private:
+  std::string node_name_;
 };
 
 #endif /* _WINSTON_SYSTEM_H_ */

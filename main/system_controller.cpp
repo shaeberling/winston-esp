@@ -14,8 +14,8 @@
 
 static const char *TAG = "win-system";
 
-SystemController::SystemController() {
-}
+SystemController::SystemController(const std::string& node_name)
+        : node_name_(node_name) {}
 
 // override
 std::vector<SensorConfig*> SystemController::getSensors() const {
@@ -80,4 +80,8 @@ std::string SystemController::getMacAddress() const {
   char buf[20];
   sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
   return buf;
+}
+
+std::string SystemController::getNodeName() const {
+  return node_name_;
 }

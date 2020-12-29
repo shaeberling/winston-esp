@@ -7,6 +7,8 @@
 #include "driver/gpio.h"
 #include "ssd1306.hpp"
 
+#include <string>
+
 enum WifiStatus {DISPLAY_WIFI_CONNECTED,
                  DISPLAY_WIFI_CONNECTING,
                  DISPLAY_WIFI_NOT_CONNECTED
@@ -19,6 +21,7 @@ class DisplayController {
                     const gpio_num_t sda,
                     Locking* locking_);
   void init();
+  void setNodeName(const std::string& node_name);
   void setWifiStatus(WifiStatus status);
   void setIpAddress(const std::string& address);
   void setMacAddress(const std::string& mac);
@@ -39,6 +42,7 @@ class DisplayController {
   OLED* oled_;
   bool active_;
 
+  std::string node_name_;
   WifiStatus wifi_status_;
   std::string ip_address_;
   std::string mac_address_;
