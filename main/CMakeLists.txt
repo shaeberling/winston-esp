@@ -11,12 +11,18 @@ idf_component_register(SRCS "winston_main.cpp"
                             "relay_controller.cpp"
                             "request_handler.cpp"
                             "server.cpp"
+                            "settings_loader.cpp"
                             "system_controller.cpp"
                             "temp_controller.cpp"
                             "time_controller.cpp"
                             "ui_controller.cpp"
                             "wifi.cpp"
+                            "proto/pb_common.c"
+                            "proto/pb_decode.c"
+                            "proto/device_settings.pb.c"
                        INCLUDE_DIRS ""
+                                    "proto/include"
+                       EMBED_FILES "node_config.bin"
                        REQUIRES main
                                 nvs_flash
                                 esp_http_server

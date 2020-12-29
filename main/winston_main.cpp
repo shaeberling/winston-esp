@@ -22,6 +22,7 @@
 #include "relay_controller.h"
 #include "request_handler.h"
 #include "server.h"
+#include "settings_loader.h"
 #include "temp_controller.h"
 #include "time_controller.h"
 #include "ui_controller.h"
@@ -29,9 +30,6 @@
 
 #define WIFI_SSID    CONFIG_WINSTON_WIFI_SSID
 #define WIFI_PASS    CONFIG_WINSTON_WIFI_PASSWORD
-#define TIMEZONE     CONFIG_WINSTON_TIMEZONE
-#define MQTT_SERVER  CONFIG_WINSTON_MQTT_SERVER
-#define NODE_NAME    CONFIG_WINSTON_NODE_NAME
 
 #define SERVER_PORT 80
 #define USE_MONGOOSE true
@@ -138,6 +136,18 @@ extern "C" {
 void app_main(void) {
   ESP_LOGI(TAG, ".: Winston ESP Node :.");
 
+  SettingsLoader settings_loader;
+  DeviceSettingsProto settings = DeviceSettingsProto_init_zero;
+  bool success = settings_loader.loadSettings(&settings);
+  if (!success) {
+    ESP_LOGE(TAG, "Cannot load embedded config. Aborting.");
+    abort();
+  }
+
+  ESP_LOGI(TAG, "Read embedded config. Node is '%s'", settings.node_name);
+  ESP_LOGI(TAG, "mqtt_server_url: '%s'", settings.mqtt_server_url);
+  ESP_LOGI(TAG, "time_zone: '%s'", settings.time_zone);
+
   // Default loop required for various events.
   // (We could create our own event loops, but for now using the default seems fine).
   ESP_ERROR_CHECK(esp_event_loop_create_default());
@@ -150,9 +160,9 @@ void app_main(void) {
   ESP_ERROR_CHECK(gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT));
 
   locking = new Locking();
-  time_controller = new TimeController(TIMEZONE);
+  time_controller = new TimeController(settings.time_zone);
   control_hub = new ControlHub();
-  mqtt = new MqttService(MQTT_SERVER, NODE_NAME);
+  mqtt = new MqttService(settings.mqtt_server_url, settings.node_name);
 
   // TODO: Make these configurable through flags.
   // Note: GPIO-5 should not be used for the relay (outputs PWM on startup).
@@ -162,9 +172,10 @@ void app_main(void) {
   pir_controller = new PIRController(GPIO_NUM_4);
   relay_controller = new RelayController({ 26, 25 });
   htu21d_controller = new HTU21DController(GPIO_NUM_17, GPIO_NUM_16, locking);
+  display_controller = new DisplayController(GPIO_NUM_22, GPIO_NUM_21, locking);
+
   temp_controller = new TempController(htu21d_controller);
   hall_controller = new HallEffectController();
-  display_controller = new DisplayController(GPIO_NUM_22, GPIO_NUM_21, locking);
   system_controller = new SystemController();
   ui_controller = new UiController(display_controller,
                                    time_controller,

@@ -29,6 +29,19 @@ These values, especially the port might be different for you, in which case you 
 
 Note: If you are running this on WSL using Windows 10, while having your ESP32 dev board connected through USB, check your Device Manager under "Ports (COM & LPT)" for e.g. *Silicon Labs CP210x USB UART Bridge(COM**X**)*. This will tell you which /dev/ttyS**X** device to connect to.
 
+## Protocol buffers
+We use protocol buffers to encode device settings. We will send these from a Winston Core server
+to the nodes so they know what components they have connected (e.g. display, temp sensor, etc)
+and how to report these out through MQTT paths.
+
+For this we use [nanopb](https://github.com/nanopb/nanopb) which is a very small C implementation
+for protocol buffers. This is used to re-generate the files inside `main/proto`.
+
+After checking out the repo and building it, `generator-bin` should exist inside the directory.
+Add this to your `PATH` so you can use the tool.
+
+Inside winston-esp, cd into `main/proto` and run `nanopb_generator ./device_settings.proto && mv *.h include` to re-generate changes from the `device_settings.proto` file.
+
 ## Version history
 
 ### 0.6 (planned)

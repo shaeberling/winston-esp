@@ -1,0 +1,48 @@
+node_name: "office-debug"
+mqtt_server_url: "mqtt://192.168.86.200"
+time_zone: "PST8PDT"
+
+component {
+  name: "htu21d"
+  gpio_pin: 17
+  gpio_pin: 16
+  id: "main"
+}
+component {
+  name: "esp-temp"
+  id: "internal"
+}
+
+component {
+  name: "ssd1306"
+  gpio_pin: 22
+  gpio_pin: 21
+  id: "display"
+}
+
+component {
+  name: "pir"
+  gpio_pin: 4
+}
+
+component {
+  name: "reed"
+  gpio_pin: 14
+  id: "garage1"
+}
+component {
+  name: "reed"
+  gpio_pin: 27
+  id: "garage2"
+}
+
+component {
+  name: "relay"
+  gpio_pin: 26
+  id: "garage1"
+}
+component {
+  name: "relay"
+  gpio_pin: 25
+  id: "garage2"
+}
