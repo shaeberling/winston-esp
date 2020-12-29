@@ -46,7 +46,6 @@ Inside winston-esp, cd into `main/proto` and run `nanopb_generator ./device_sett
 
 ### 0.6 (planned)
  - Receive config from master (which sensors, which pins etc, timezone) ⌛
- - Move timezone setting to be dynamic, instead of compile time ⌛
  - Set up a wifi hotspot to configure wifi connection ⌛
  - OTA support (no more plugging it in to update) ⌛
 
@@ -55,6 +54,8 @@ Inside winston-esp, cd into `main/proto` and run `nanopb_generator ./device_sett
 
 ### 0.4  (in progress)
  - Revamped internal event system for modules to publish updates to both MQTT, the REST API as well as a connected screen ⌛
+ - Node set-up is controlled by a protocol buffer. This enables nodes to be different by changing their embedded configuration instead of re-compiling. ⌛
+ - Move timezone setting to be dynamic, instead of in code ✓
  - Added `/io/system/info` call for basic system information ✓
  - Added `/io/system/restart` to restart the system ✓
  - Display: Show MAC address ✓
