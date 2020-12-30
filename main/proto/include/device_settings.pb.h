@@ -13,7 +13,8 @@
 typedef struct _ComponentProto {
     char name[17];
     char id[17];
-    pb_callback_t gpio_pin;
+    pb_size_t gpio_pin_count;
+    int32_t gpio_pin[8];
 } ComponentProto;
 
 typedef struct _DeviceSettingsProto {
@@ -30,9 +31,9 @@ extern "C" {
 
 /* Initializer values for message structs */
 #define DeviceSettingsProto_init_default         {"", "", "", {{NULL}, NULL}}
-#define ComponentProto_init_default              {"", "", {{NULL}, NULL}}
+#define ComponentProto_init_default              {"", "", 0, {0, 0, 0, 0, 0, 0, 0, 0}}
 #define DeviceSettingsProto_init_zero            {"", "", "", {{NULL}, NULL}}
-#define ComponentProto_init_zero                 {"", "", {{NULL}, NULL}}
+#define ComponentProto_init_zero                 {"", "", 0, {0, 0, 0, 0, 0, 0, 0, 0}}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define ComponentProto_name_tag                  1
@@ -56,8 +57,8 @@ X(a, CALLBACK, REPEATED, MESSAGE,  component,         4)
 #define ComponentProto_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, STRING,   name,              1) \
 X(a, STATIC,   SINGULAR, STRING,   id,                2) \
-X(a, CALLBACK, REPEATED, INT32,    gpio_pin,          3)
-#define ComponentProto_CALLBACK pb_default_field_callback
+X(a, STATIC,   REPEATED, INT32,    gpio_pin,          3)
+#define ComponentProto_CALLBACK NULL
 #define ComponentProto_DEFAULT NULL
 
 extern const pb_msgdesc_t DeviceSettingsProto_msg;
@@ -69,7 +70,7 @@ extern const pb_msgdesc_t ComponentProto_msg;
 
 /* Maximum encoded size of messages (where known) */
 /* DeviceSettingsProto_size depends on runtime parameters */
-/* ComponentProto_size depends on runtime parameters */
+#define ComponentProto_size                      124
 
 #ifdef __cplusplus
 } /* extern "C" */
