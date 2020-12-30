@@ -27,5 +27,5 @@ message ComponentProto {
   /* Identifier for this particular instance of the component, e.g. garage1 */
   string id = 2 [(nanopb).max_length = 16];
   /* A ist of GPIO pins used by this components.*/
-  repeated int32 gpio_pin = 3;
+  repeated int32 gpio_pin = 3 [(nanopb).max_count = 8];
 }
