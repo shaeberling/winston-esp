@@ -1,6 +1,7 @@
 #include "settings_loader.h"
 
 #include <string>
+#include <vector>
 
 #include "esp_log.h"
 
@@ -12,6 +13,20 @@ static const char* TAG = "win-settings";
 namespace {
 
 // Called from nanopb to parse components of the message.
+static bool pb_component_callback(pb_istream_t* stream,
+                                  const pb_field_t* field,
+                                  void** arg) {
+  auto* settings = static_cast<Settings*>(*arg);
+  ComponentProto component;
+  if (!pb_decode(stream, ComponentProto_fields, &component)) {
+    ESP_LOGE(TAG, "Failed to decode component");
+    return false;
+  }
+  settings->components.push_back(component);
+  return true;
+}
+
+// Called from nanopb to parse the message.
 static bool pb_read_callback(pb_istream_t* stream, uint8_t* buf, size_t count) {
   char* data_start = (char*) stream->state;
   memcpy(buf, data_start, count);
@@ -36,10 +51,12 @@ pb_istream_t pb_istream_from_file() {
 
 SettingsLoader::SettingsLoader() { }
 
-bool SettingsLoader::loadSettings(DeviceSettingsProto* settings) {
+bool SettingsLoader::loadSettings(Settings* settings) {
   ESP_LOGI(TAG, "Reading embedded node config ...");
+  settings->device_settings.component.arg = settings;
+  settings->device_settings.component.funcs.decode = &pb_component_callback;
   pb_istream_t sizestream = pb_istream_from_file();
-  bool success = pb_decode(&sizestream, DeviceSettingsProto_fields, settings);
+  bool success = pb_decode(&sizestream, DeviceSettingsProto_fields, &settings->device_settings);
   if (!success) {
     ESP_LOGE(TAG, "Error decoding embedded binary node config.");
     return false;
