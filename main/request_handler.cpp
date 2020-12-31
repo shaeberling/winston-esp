@@ -96,7 +96,7 @@ bool RequestHandler::isReedClosed(const std::string& req) {
     ESP_LOGW(TAG, "Invalid reed index.");
     return false;
   }
-  return reed_->is_closed(reed_idx);
+  return reed_->isClosed();
 }
 
 // /io/relay/[idx]/[0,1,2,3]

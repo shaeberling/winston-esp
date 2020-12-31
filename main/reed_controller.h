@@ -3,16 +3,24 @@
 #ifndef _WINSTON_REED_CONTROLLER_H_
 #define _WINSTON_REED_CONTROLLER_H_
 
-#include <esp_http_server.h>
+#include <string>
 #include <vector>
 
-class ReedController {
+#include "driver/gpio.h"
+#include <esp_http_server.h>
+
+#include "controller.h"
+
+class ReedController : public Controller {
  public:
-  ReedController(const std::vector<int>& mapping);
-  bool is_closed(int idx);
+  ReedController(const std::string& id, const gpio_num_t pin);
+  bool init() override;
+  std::vector<SensorConfig*> getSensors() override;
+  bool isClosed();
+
  private:
-  std::vector<int> mapping_;
-  void initPin(int n);
+  const std::string id_;
+  const gpio_num_t pin_;
 };
 
 #endif /* _WINSTON_REED_CONTROLLER_H_ */
