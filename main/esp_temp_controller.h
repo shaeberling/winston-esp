@@ -13,7 +13,8 @@ class EspTempController : public Controller {
  public:
   EspTempController(const std::string& id);
   bool init() override;
-  std::vector<SensorConfig*> getSensors() override;
+  void registerIO(std::vector<SensorConfig*>*,
+                  std::vector<ActuatorConfig*>*) override;
 
  private:
   std::string id_;

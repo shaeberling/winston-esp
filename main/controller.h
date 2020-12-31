@@ -19,13 +19,23 @@ struct SensorConfig {
   std::function<std::string(void)> get_value;
 };
 
+struct ActuatorConfig {
+  // E.g. "temp", "reed", etc.
+  std::string name;
+  // Unique name to this sensor, e.g. "garage1" or simply "main".
+  std::string id;
+  // Function that will be called with the given data value as a string.
+  std::function<bool(const std::string&)> set_value;
+};
+
 // Interface for all controllers.
 class Controller {
  public:
 
   // Returns a list of sensor configurations.
   // Caller owns the pointers!
-  virtual std::vector<SensorConfig*> getSensors();
+  virtual void registerIO(std::vector<SensorConfig*>*,
+                          std::vector<ActuatorConfig*>*);
 
   // Initializes the controller.
   virtual bool init();

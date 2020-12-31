@@ -24,13 +24,12 @@ bool EspTempController::init() {
 }
 
 // override
-std::vector<SensorConfig*> EspTempController::getSensors() {
-  std::vector<SensorConfig*> sensors;
-  sensors.push_back(new SensorConfig {
+void EspTempController::registerIO(std::vector<SensorConfig*>* sensors,
+                                   std::vector<ActuatorConfig*>* actuators) {
+  sensors->push_back(new SensorConfig {
     .name = "temp",
     .id = this->id_,
     .update_interval_seconds = 10,
     .get_value = [](void){ return std::to_string(temprature_sens_read() - 32); }
   });
-  return sensors;
 }

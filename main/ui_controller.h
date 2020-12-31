@@ -20,7 +20,8 @@ class UiController : public Controller {
                SystemController* system_controller);
   // Enables listening to events to update display contents.
   bool init() override;
-  std::vector<SensorConfig*> getSensors() override;
+  void registerIO(std::vector<SensorConfig*>*,
+                  std::vector<ActuatorConfig*>*) override;
  private:
   DisplayController* display_;
   TimeController* time_;

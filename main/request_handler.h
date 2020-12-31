@@ -16,26 +16,13 @@
 // Routes incoming requests.
 class RequestHandler {
  public:
-  RequestHandler(ReedController* reed,
-                 RelayController* relay,
-                 HTU21DController* temp,
-                 HallEffectController* hall,
-                 TimeController* time,
+  RequestHandler(TimeController* time,
                  SystemController* system);
   std::string handle(const std::string& uri);
  private:
-  ReedController* reed_;
-  RelayController* relay_;
-  HTU21DController* temp_;
-  HallEffectController* hall_;
   TimeController* time_;
   SystemController* system_;
 
-  bool isReedClosed(const std::string& req);
-  bool switchRelay(const std::string& req);
-  float getTemperature(const std::string& req);
-  float getHumidity(const std::string& req);
-  int getHallEffect(const std::string& req);
   std::string getSystemValue(const std::string& req);
 };
 

@@ -14,7 +14,8 @@ class SystemController : public Controller {
   bool init() override;
 
   // From Controller interface, returns all "sensors".
-  std::vector<SensorConfig*> getSensors() override;
+  void registerIO(std::vector<SensorConfig*>*,
+                  std::vector<ActuatorConfig*>*) override;
 
   // Get the amount of free heap memory, in bytes.
   int getFreeHeapBytes() const;

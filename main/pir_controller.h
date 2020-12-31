@@ -18,7 +18,8 @@ class PIRController : public Controller {
  public:
   PIRController(const std::string& id, const gpio_num_t pin);
   bool init() override;
-  std::vector<SensorConfig*> getSensors() override;
+  void registerIO(std::vector<SensorConfig*>*,
+                  std::vector<ActuatorConfig*>*) override;
 
   // Called when a PIR interrupt event occurs.
   void onInterruptEvent();

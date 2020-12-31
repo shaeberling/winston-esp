@@ -29,18 +29,14 @@ bool ReedController::init() {
 
 
 // override
-std::vector<SensorConfig*> ReedController::getSensors() {
-  std::vector<SensorConfig*> sensors;
-
-  auto* c = new SensorConfig {
+void ReedController::registerIO(std::vector<SensorConfig*>* sensors,
+                                std::vector<ActuatorConfig*>* actuators) {
+  sensors->push_back(new SensorConfig {
     .name = "reed",
     .id = id_,
     .update_interval_seconds = 5,
     .get_value = [this](void){ return std::to_string(this->isClosed()); }
-  };
-  sensors.push_back(c);
-
-  return sensors;
+  });
 }
 
 // public

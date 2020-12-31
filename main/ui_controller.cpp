@@ -35,8 +35,8 @@ UiController::UiController(DisplayController* display,
 }
 
 // override
-std::vector<SensorConfig*> UiController::getSensors() {
-  return {};
+void UiController::registerIO(std::vector<SensorConfig*>* sensors,
+                              std::vector<ActuatorConfig*>* actuators) {
 }
 
 bool UiController::init() {

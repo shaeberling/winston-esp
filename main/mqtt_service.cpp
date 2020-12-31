@@ -76,14 +76,20 @@ void MqttService::onWinstonEvent(esp_event_base_t base,
 
 // Receives events from the MQTT service.
 esp_err_t MqttService::onMqttEvent(esp_mqtt_event_handle_t event) {
-  // esp_mqtt_client_handle_t client = event->client;
-  // int msg_id;
+  esp_mqtt_client_handle_t client = event->client;
   switch (event->event_id) {
-      case MQTT_EVENT_CONNECTED:
+      case MQTT_EVENT_CONNECTED: {
           ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-          // msg_id = esp_mqtt_client_subscribe(client, "winston/garage/open", 0);
-          // ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+          std::ostringstream topic;
+          topic << "winston/" << node_name_ << "/in/#";
+          auto msg_id = esp_mqtt_client_subscribe(client, topic.str().c_str(), 0);
+          if (msg_id != -1) {
+            ESP_LOGI(TAG, "Successfully subscribed to node updates.");
+          } else {
+            ESP_LOGE(TAG, "Unable to subscribe to node updates.");
+          }
           break;
+      }
       case MQTT_EVENT_DISCONNECTED:
           ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
           break;

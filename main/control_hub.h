@@ -22,11 +22,12 @@ class ControlHub {
   // Registers a controller, given its sensors and actuators.
   void registerController(Controller* controller);
  private:
-   void registerSensor(SensorConfig* config);
-   void onSensorUpdate(const std::string& path, const std::string& value);
-   static void startUpdateLoop(void* param);
-
   const TimeController* time_controller_;
+
+  void registerSensor(SensorConfig* config);
+  void registerActuator(ActuatorConfig* config);
+  void onSensorUpdate(const std::string& path, const std::string& value);
+  static void startUpdateLoop(void* param);
 };
 
 

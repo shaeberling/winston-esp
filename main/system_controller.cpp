@@ -23,18 +23,14 @@ bool SystemController::init() {
 }
 
 // override
-std::vector<SensorConfig*> SystemController::getSensors() {
-  std::vector<SensorConfig*> sensors;
-
-  auto* c = new SensorConfig {
+void SystemController::registerIO(std::vector<SensorConfig*>* sensors,
+                                  std::vector<ActuatorConfig*>* actuators) {
+  sensors->push_back(new SensorConfig {
     .name = "system",
     .id = "heap",
     .update_interval_seconds = 60,
     .get_value = [this](void){ return std::to_string(this->getFreeHeapBytes()); }
-  };
-  sensors.push_back(c);
-
-  return sensors;
+  });
 }
 
 int SystemController::getFreeHeapBytes() const {

@@ -28,10 +28,15 @@ struct TaskConfig {
 ControlHub::ControlHub() {}
 
 void ControlHub::registerController(Controller* controller) {
+  std::vector<SensorConfig*> sensors;
+  std::vector<ActuatorConfig*> actuators;
+  controller->registerIO(&sensors, &actuators);
   // Note, we are owning the config pointers.
-  auto sensors = controller->getSensors();
-  for (auto& config : sensors) {
+  for (auto* config : sensors) {
     registerSensor(config);
+  }
+  for (auto* config : actuators) {
+    registerActuator(config);
   }
 }
 
@@ -55,6 +60,8 @@ void ControlHub::registerSensor(SensorConfig* config) {
   }
 }
 
+void ControlHub::registerActuator(ActuatorConfig* config) {
+}
 
 // private
 void ControlHub::onSensorUpdate(const std::string& path, const std::string& value) {

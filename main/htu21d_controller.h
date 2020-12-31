@@ -19,7 +19,8 @@ class HTU21DController : public Controller {
                    Locking* locking);
 
   bool init() override;
-  std::vector<SensorConfig*> getSensors() override;
+  void registerIO(std::vector<SensorConfig*>*,
+                  std::vector<ActuatorConfig*>*) override;
 
   float getCelsius() const;
   float getHumidity() const;

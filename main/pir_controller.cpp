@@ -33,18 +33,14 @@ bool PIRController::init() {
 }
 
 // override
-std::vector<SensorConfig*> PIRController::getSensors() {
-  std::vector<SensorConfig*> sensors;
-
-  auto* c = new SensorConfig {
+void PIRController::registerIO(std::vector<SensorConfig*>* sensors,
+                               std::vector<ActuatorConfig*>* actuators) {
+  sensors->push_back(new SensorConfig {
     .name = "pir",
     .id = id_,
     .update_interval_seconds = 5,
     .get_value = [this](void){ return std::to_string(this->motionSinceLastCall()); }
-  };
-  sensors.push_back(c);
-
-  return sensors;
+  });
 }
 
 // private

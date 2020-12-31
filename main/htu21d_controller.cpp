@@ -85,24 +85,21 @@ bool HTU21DController::init() {
 }
 
 // override
-std::vector<SensorConfig*> HTU21DController::getSensors() {
-  std::vector<SensorConfig*> sensors;
-
-  sensors.push_back(new SensorConfig {
+void HTU21DController::registerIO(std::vector<SensorConfig*>* sensors,
+                                  std::vector<ActuatorConfig*>* actuators) {
+  sensors->push_back(new SensorConfig {
     .name = "temp",
     .id = this->id_,
     .update_interval_seconds = 10,
     .get_value = [this](void){ return std::to_string(this->getCelsius()); }
   });
 
-  sensors.push_back(new SensorConfig {
+  sensors->push_back(new SensorConfig {
     .name = "hum",
     .id = this->id_,
     .update_interval_seconds = 10,
     .get_value = [this](void){ return std::to_string(this->getHumidity()); }
   });
-
-  return sensors;
 }
 
 

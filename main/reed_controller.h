@@ -15,7 +15,8 @@ class ReedController : public Controller {
  public:
   ReedController(const std::string& id, const gpio_num_t pin);
   bool init() override;
-  std::vector<SensorConfig*> getSensors() override;
+  void registerIO(std::vector<SensorConfig*>*,
+                  std::vector<ActuatorConfig*>*) override;
   bool isClosed();
 
  private:
