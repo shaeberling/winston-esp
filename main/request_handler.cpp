@@ -11,7 +11,7 @@
 #include "relay_controller.h"
 #include "request_handler.h"
 #include "system_controller.h"
-#include "temp_controller.h"
+#include "htu21d_controller.h"
 #include "time_controller.h"
 
 namespace {
@@ -32,7 +32,7 @@ void split(const std::string& str,
 
 RequestHandler::RequestHandler(ReedController* reed,
                                RelayController* relay,
-                               TempController* temp,
+                               HTU21DController* temp,
                                HallEffectController* hall,
                                TimeController* time,
                                SystemController* system)
@@ -166,7 +166,7 @@ float RequestHandler::getTemperature(const std::string& req) {
     ESP_LOGW(TAG, "Cannot parse temperature sensor index.");
     return -1;
   }
-  return temp_->getCelsius(temp_idx);
+  return temp_->getCelsius();
 }
 
 // /io/hum/[idx]
@@ -180,7 +180,7 @@ float RequestHandler::getHumidity(const std::string& req) {
     ESP_LOGW(TAG, "Cannot parse humidty sensor index.");
     return -1;
   }
-  return temp_->getHumidity(temp_idx);
+  return temp_->getHumidity();
 }
 
 // /io/hall/[idx]

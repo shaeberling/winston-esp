@@ -11,8 +11,8 @@
 struct SensorConfig {
   // E.g. "temp", "reed", etc.
   std::string name;
-  // For multiple sensors of the same type.
-  int idx;
+  // Unique name to this sensor, e.g. "garage1" or simply "main".
+  std::string id;
   // Zero or a negative value means no update.
   int update_interval_seconds;
   // Function that will return the value of the sensor as a string.
@@ -26,6 +26,9 @@ class Controller {
   // Returns a list of sensor configurations.
   // Caller owns the pointers!
   virtual std::vector<SensorConfig*> getSensors() const;
+
+  // Initializes the controller.
+  virtual bool init();
 
 };
 

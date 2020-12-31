@@ -10,20 +10,14 @@
 #include "nvs_flash.h"
 
 #include "control_hub.h"
-#include "display_controller.h"
+#include "controller_factory.h"
 #include "events.h"
-#include "hall_effect_controller.h"
-#include "htu21d_controller.h"
 #include "locking.h"
 #include "mongoose_server.h"
 #include "mqtt_service.h"
-#include "pir_controller.h"
-#include "reed_controller.h"
-#include "relay_controller.h"
 #include "request_handler.h"
 #include "server.h"
 #include "settings_loader.h"
-#include "temp_controller.h"
 #include "time_controller.h"
 #include "ui_controller.h"
 #include "wifi.h"
@@ -44,18 +38,8 @@ namespace {
 
 Locking* locking;
 ControlHub* control_hub;
-
-ReedController* reed_controller;
-PIRController* pir_controller;
-RelayController* relay_controller;
-TempController* temp_controller;
-HallEffectController* hall_controller;
-DisplayController* display_controller;
-UiController* ui_controller;
-HTU21DController* htu21d_controller;
 TimeController* time_controller;
-SystemController* system_controller;
-RequestHandler* request_handler;
+std::vector<Controller*> controllers;
 
 MqttService* mqtt;
 std::unique_ptr<Server> server;
@@ -81,7 +65,9 @@ void onWifiConnected() {
     ESP_LOGI(TAG, "Mongoose server stopped.");
   }
 
-  ESP_LOGI(TAG, "Wifi connected. Starting webserver ...");
+  // TODO: Might deprecate this way of getting values in favor of MQTT.
+  //       Will revive the server to start settings.
+  /*ESP_LOGI(TAG, "Wifi connected. Starting webserver ...");
   if (USE_MONGOOSE) {
     mg_server.reset(new MongooseServer(SERVER_PORT, request_handler));
   } else {
@@ -100,7 +86,7 @@ void onWifiConnected() {
     } else {
       ESP_LOGE(TAG, "Starting the webserver failed.");
     }
-  }
+  }*/
 
   ESP_LOGI(TAG, "Triggering NTP sync");
   time_controller->syncWithNtp();
@@ -136,6 +122,7 @@ extern "C" {
 void app_main(void) {
   ESP_LOGI(TAG, ".: Winston ESP Node :.");
 
+  // Load settings.
   Settings settings = {
     .device_settings = DeviceSettingsProto_init_zero,
     {}
@@ -147,8 +134,6 @@ void app_main(void) {
     ESP_LOGE(TAG, "Cannot load embedded config. Aborting.");
     abort();
   }
-  ESP_LOGI(TAG, "Settings contains %d components.", settings.components.size());
-
   const auto& device_settings = settings.device_settings;
 
   ESP_LOGI(TAG, "Read embedded config. Node is '%s'", device_settings.node_name);
@@ -167,29 +152,28 @@ void app_main(void) {
   ESP_ERROR_CHECK(gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT));
 
   locking = new Locking();
-  time_controller = new TimeController(device_settings.time_zone);
-  control_hub = new ControlHub();
-  mqtt = new MqttService(device_settings.mqtt_server_url, device_settings.node_name);
 
-  // TODO: Make these configurable through flags.
+  // System controller is not configured and always present.
+  auto* system_controller = new SystemController(device_settings.node_name);
+  time_controller = new TimeController(device_settings.time_zone);
+
+  controllers.push_back(system_controller);
+  ControllerFactory factory(locking, time_controller, system_controller);
+  for (auto& component : settings.components) {
+    auto* controller = factory.createController(component);
+    if (controller != NULL) controllers.push_back(controller);
+  }
+
+  // TODO: Add a sanity check before initializing things. Ensure no pins are
+  //       used twice and ensure we don't use any that are not that usable.
   // Note: GPIO-5 should not be used for the relay (outputs PWM on startup).
   // See usable GPIOs here:
   // https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
-  reed_controller = new ReedController({ 14, 27 });
-  pir_controller = new PIRController(GPIO_NUM_4);
-  relay_controller = new RelayController({ 26, 25 });
-  htu21d_controller = new HTU21DController(GPIO_NUM_17, GPIO_NUM_16, locking);
-  display_controller = new DisplayController(GPIO_NUM_22, GPIO_NUM_21, locking);
 
-  temp_controller = new TempController(htu21d_controller);
-  hall_controller = new HallEffectController();
-  system_controller = new SystemController(device_settings.node_name);
-  ui_controller = new UiController(display_controller,
-                                   time_controller,
-                                   system_controller);
-  request_handler = new RequestHandler(reed_controller, relay_controller,
-                                       temp_controller, hall_controller,
-                                       time_controller, system_controller);
+
+  control_hub = new ControlHub();
+  mqtt = new MqttService(device_settings.mqtt_server_url, device_settings.node_name);
+
   initNvs();
 
   ESP_LOGI(TAG, "NVS initialized. Connecting to Wifi...");
@@ -199,14 +183,12 @@ void app_main(void) {
   // Note: This will change ADC config and will use up some pins around 36.
   // TODO: Make this a start-up config parameter.
   // hall_controller->init();
-  // TODO: Add an sdkconfig variable about activating it or not (same for other modules).
-  display_controller->init();
-  ui_controller->init();
-  htu21d_controller->init();
-  pir_controller->init(); // Note: Needs interrupts.
+  // pir_controller->init(); // Note: Needs interrupts.
 
-  control_hub->registerController(*temp_controller);
-  control_hub->registerController(*system_controller);
+  for(auto* controller : controllers) {
+    controller->init();
+    control_hub->registerController(*controller);
+  }
 }
 
 } // extern "C"

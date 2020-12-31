@@ -36,7 +36,7 @@ void ControlHub::registerController(const Controller& controller) {
 }
 
 void ControlHub::registerSensor(SensorConfig* config) {
-  std::string task_name = "sensor_updater_" + config->name + "_" + std::to_string(config->idx);
+  std::string task_name = "sensor_updater_" + config->name + "_" + config->id;
   ESP_LOGI(TAG, "Registering new sensor: %s", task_name.c_str());
 
   // Needs to be on the heap, not stack.
@@ -73,7 +73,7 @@ void ControlHub::startUpdateLoop(void* param) {
   auto* task = static_cast<TaskConfig*>(param);
 
   const auto* config = task->config;
-  auto path = config->name + "/" + std::to_string(config->idx);
+  auto path = config->name + "/" + config->id;
 
   // We don't want to or need to stop a loop of a sensor right now.
   while(true) {

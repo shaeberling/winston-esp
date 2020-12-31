@@ -1,10 +1,16 @@
 #include "htu21d_controller.h"
 
+#include "controller.h"
+#include "htu21d_controller.h"
 #include "locking.h"
-#include <sstream>
+
 #include "driver/gpio.h"
 #include "driver/i2c.h"
 #include "esp_log.h"
+
+#include <sstream>
+#include <string>
+#include <vector>
 
 static const char* TAG = "htu21d-ctrl";
 
@@ -14,15 +20,18 @@ static const int HTU21D_ADDR = 0x40;
 static const int TEMP_NO_HOLD_MASTER = 0xF3;
 static const int HUMI_NO_HOLD_MASTER = 0xF5;
 
-HTU21DController::HTU21DController(const gpio_num_t scl,
+HTU21DController::HTU21DController(const std::string& id,
+                                   const gpio_num_t scl,
                                    const gpio_num_t sda,
                                    Locking* locking) :
+    id_(id),
     gpio_scl_(scl),
     gpio_sda_(sda),
     locking_(locking),
     initialized_(false) {
 }
 
+// override
 bool HTU21DController::init() {
   if (initialized_) {
     ESP_LOGW(TAG, "HTU21D controller already initialized.");
@@ -75,8 +84,29 @@ bool HTU21DController::init() {
   return true;
 }
 
+// override
+std::vector<SensorConfig*> HTU21DController::getSensors() const {
+  std::vector<SensorConfig*> sensors;
 
-float HTU21DController::getCelsius() {
+  sensors.push_back(new SensorConfig {
+    .name = "temp",
+    .id = this->id_,
+    .update_interval_seconds = 10,
+    .get_value = [this](void){ return std::to_string(this->getCelsius()); }
+  });
+
+  sensors.push_back(new SensorConfig {
+    .name = "hum",
+    .id = this->id_,
+    .update_interval_seconds = 10,
+    .get_value = [this](void){ return std::to_string(this->getHumidity()); }
+  });
+
+  return sensors;
+}
+
+
+float HTU21DController::getCelsius() const {
   if (!initialized_) {
     ESP_LOGE(TAG, "HTU21D controller not initialized.");
     return 0;
@@ -89,7 +119,7 @@ float HTU21DController::getCelsius() {
   return result;
 }
 
-float HTU21DController::getHumidity() {
+float HTU21DController::getHumidity() const {
   if (!initialized_) {
     ESP_LOGE(TAG, "HTU21D controller not initialized.");
     return 0;
@@ -103,7 +133,7 @@ float HTU21DController::getHumidity() {
 }
 
 // private
-int HTU21DController::getRawWithLock(int command) {
+int HTU21DController::getRawWithLock(int command) const {
   if (!this->locking_->lockI2C(TAG)) {
     ESP_LOGE(TAG, "Cannot lock I2C bus access.");
     return 0;
@@ -116,7 +146,7 @@ int HTU21DController::getRawWithLock(int command) {
   return value;
 }
 
-int HTU21DController::getRaw(int command) {
+int HTU21DController::getRaw(int command) const {
   esp_err_t ret;
   // Sending command to request value.
   i2c_cmd_handle_t cmd = i2c_cmd_link_create();

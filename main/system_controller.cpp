@@ -17,13 +17,17 @@ static const char *TAG = "win-system";
 SystemController::SystemController(const std::string& node_name)
         : node_name_(node_name) {}
 
+bool SystemController::init() {
+  return true;
+}
+
 // override
 std::vector<SensorConfig*> SystemController::getSensors() const {
   std::vector<SensorConfig*> sensors;
 
   auto* c = new SensorConfig {
-    .name = "sys-heap",
-    .idx = 0,
+    .name = "system",
+    .id = "heap",
     .update_interval_seconds = 60,
     .get_value = [this](void){ return std::to_string(this->getFreeHeapBytes()); }
   };

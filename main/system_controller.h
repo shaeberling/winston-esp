@@ -11,6 +11,8 @@ class SystemController : public Controller {
  public:
   SystemController(const std::string& node_name);
 
+  bool init() override;
+
   // From Controller interface, returns all "sensors".
   std::vector<SensorConfig*> getSensors() const override;
 

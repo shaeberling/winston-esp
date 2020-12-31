@@ -4,6 +4,7 @@
 #define _WINSTON_UI_CONTROLLER_H_
 
 #include <string>
+#include <vector>
 
 #include "esp_event.h"
 
@@ -11,13 +12,14 @@
 #include "system_controller.h"
 #include "time_controller.h"
 
-class UiController {
+class UiController : public Controller {
  public:
   UiController(DisplayController* display,
                TimeController* time_controller,
                SystemController* system_controller);
   // Enables listening to events to update display contents.
-  void init();
+  bool init() override;
+  std::vector<SensorConfig*> getSensors() const override;
  private:
   DisplayController* display_;
   TimeController* time_;

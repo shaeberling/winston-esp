@@ -70,6 +70,7 @@ DisplayController::DisplayController(const gpio_num_t scl,
     locking_(locking),
     panel_type_(SSD1306_128x64),
     oled_(NULL),
+    active_(false),
     node_name_("[node name]"),
     wifi_status_(DISPLAY_WIFI_NOT_CONNECTED),
     ip_address_("N/A"),
@@ -109,6 +110,7 @@ void DisplayController::init() {
 
 void DisplayController::update() {
   if (!active_) {
+    ESP_LOGW(TAG, "Unable to update: not initialized!");
     return;
   }
   if (!this->locking_->lockI2C(TAG)) {

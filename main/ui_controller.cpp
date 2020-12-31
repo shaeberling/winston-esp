@@ -4,8 +4,8 @@
 #include <functional>
 #include <sstream>
 #include <string.h>
+#include <vector>
 
-#include "events.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
@@ -13,7 +13,9 @@
 #include "esp_event.h"
 #include "esp_log.h"
 
+#include "controller.h"
 #include "display_controller.h"
+#include "events.h"
 #include "system_controller.h"
 #include "time_controller.h"
 
@@ -32,10 +34,16 @@ UiController::UiController(DisplayController* display,
       connection_attempts_(0) {
 }
 
-void UiController::init() {
+// override
+std::vector<SensorConfig*> UiController::getSensors() const {
+  return {};
+}
+
+bool UiController::init() {
+  display_->init();
   if (initiated_) {
     ESP_LOGE(TAG, "UiController is already initiated.");
-    return;
+    return false;
   }
   ESP_LOGI(TAG, "Enabling UI controller...");
 
@@ -49,11 +57,13 @@ void UiController::init() {
      UiController::startUpdateLoop, "ui-updater", 5000, this, 1, NULL, 0);
   if (rt != pdPASS) {
    ESP_LOGE(TAG, "Cannot create UI update task.");
+   return false;
   }
 
   // The MAC address never changes, so set it only once.
   display_->setMacAddress(system_->getMacAddress());
   display_->setNodeName(system_->getNodeName());
+  return true;
 }
 
 // private
@@ -63,9 +73,9 @@ void UiController::onEvent(esp_event_base_t event_base,
     auto* update = static_cast<SensorUpdate*>(event_data);
 
     // 0 is the inaccurate internal sensor.
-    if (update->sensor_path == "temp/1") {
+    if (update->sensor_path == "temp/main") {
       this->display_->setTemperature(std::stof(update->value_str));
-    } else if (update->sensor_path == "hum/0") {
+    } else if (update->sensor_path == "hum/main") {
       this->display_->setHumidity(std::stof(update->value_str));
     }
   } else if (event_base == WINSTON_EVENT && event_id == WIFI_CONNECTED) {

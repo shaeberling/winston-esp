@@ -6,11 +6,11 @@
 #include <string>
 
 #include "hall_effect_controller.h"
+#include "htu21d_controller.h"
 #include "reed_controller.h"
 #include "relay_controller.h"
 #include "request_handler.h"
 #include "system_controller.h"
-#include "temp_controller.h"
 #include "time_controller.h"
 
 // Routes incoming requests.
@@ -18,7 +18,7 @@ class RequestHandler {
  public:
   RequestHandler(ReedController* reed,
                  RelayController* relay,
-                 TempController* temp,
+                 HTU21DController* temp,
                  HallEffectController* hall,
                  TimeController* time,
                  SystemController* system);
@@ -26,7 +26,7 @@ class RequestHandler {
  private:
   ReedController* reed_;
   RelayController* relay_;
-  TempController* temp_;
+  HTU21DController* temp_;
   HallEffectController* hall_;
   TimeController* time_;
   SystemController* system_;
