@@ -10,6 +10,7 @@
 #include "time_controller.h"
 
 #include <functional>
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -25,7 +26,32 @@ struct TaskConfig {
 
 }  // namespace
 
-ControlHub::ControlHub() {}
+ControlHub::ControlHub() {
+    esp_event_handler_register(WINSTON_EVENT, ACTUATOR_EVENT,
+                               &ControlHub::actuator_event_handler, this);
+}
+
+void ControlHub::handleActuatorEvent(esp_event_base_t event_base, 
+                                     int32_t event_id, void* event_data) {
+  if (event_base != WINSTON_EVENT || event_id != ACTUATOR_EVENT) {
+    return;
+  }
+  auto* update = static_cast<SensorUpdate*>(event_data);
+  auto pos = actuators_.find(update->sensor_path);
+  if (pos == actuators_.end()) {
+    ESP_LOGE(TAG, "Cannot find actuator '%s'", update->sensor_path.c_str());
+  } else {
+    pos->second(update->value_str);
+  }
+}
+
+// static
+void ControlHub::actuator_event_handler(void* arg, esp_event_base_t event_base, 
+                                        int32_t event_id, void* event_data) {
+  static_cast<ControlHub*>(arg)->handleActuatorEvent(event_base,
+                                                     event_id,
+                                                     event_data);
+}
 
 void ControlHub::registerController(Controller* controller) {
   std::vector<SensorConfig*> sensors;
@@ -61,6 +87,10 @@ void ControlHub::registerSensor(SensorConfig* config) {
 }
 
 void ControlHub::registerActuator(ActuatorConfig* config) {
+  std::string rel_path = config->name + "/" + config->id;
+  actuators_.insert(
+      std::pair<std::string, std::function<bool(const std::string&)>>(
+          rel_path, config->set_value)); 
 }
 
 // private
@@ -72,7 +102,6 @@ void ControlHub::onSensorUpdate(const std::string& path, const std::string& valu
   // Note: This will make a copy of the event payload data.
   esp_event_post(WINSTON_EVENT, SENSOR_EVENT, &sensor_event,
                  sizeof(sensor_event), portMAX_DELAY);
-
 }
 
 // private static

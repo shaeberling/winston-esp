@@ -31,7 +31,6 @@ struct ActuatorConfig {
 // Interface for all controllers.
 class Controller {
  public:
-
   // Returns a list of sensor configurations.
   // Caller owns the pointers!
   virtual void registerIO(std::vector<SensorConfig*>*,

@@ -12,6 +12,7 @@
 #include "locking.h"
 #include "pir_controller.h"
 #include "reed_controller.h"
+#include "relay_controller.h"
 #include "system_controller.h"
 #include "time_controller.h"
 #include "ui_controller.h"
@@ -47,6 +48,7 @@ Controller* ControllerFactory::createController(const ComponentProto& comp) {
   } else if (strcmp(comp.name, "reed") == 0) {
     return new ReedController(comp.id, gpio_0);
   } else if (strcmp(comp.name, "relay") == 0) {
+    return new RelayController(comp.id, gpio_0);
   } else {
     ESP_LOGE(TAG, "Unknown component name '%s' for '%s'.",
              comp.name, comp.id);

@@ -1,8 +1,10 @@
 #include "mqtt_service.h"
 
 
+#include <iterator>
 #include <sstream>
 #include <string.h>
+#include <vector>
 
 #include "esp_event.h"
 #include "esp_log.h"
@@ -29,6 +31,16 @@ static void mqtt_event_handler(void *arg,
   ESP_LOGI(TAG, "Event dispatched: event_base=%s, event_id=%d", base, event_id);
   static_cast<MqttService*>(arg)->onMqttEvent(
       static_cast<esp_mqtt_event_handle_t>(event_data));
+}
+
+void split(const std::string& str,
+           const char delim,
+           std::vector<std::string>* items) {
+  std::stringstream ss(str);
+  std::string token;
+  while (std::getline(ss, token, delim)) {
+    items->push_back(token);
+  }
 }
 
 }  // namespace
@@ -102,11 +114,38 @@ esp_err_t MqttService::onMqttEvent(esp_mqtt_event_handle_t event) {
       case MQTT_EVENT_PUBLISHED:
           ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
           break;
-      case MQTT_EVENT_DATA:
+      case MQTT_EVENT_DATA: {
           ESP_LOGI(TAG, "MQTT_EVENT_DATA");
-          printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
-          printf("DATA=%.*s\r\n", event->data_len, event->data);
+          char buffer [30];
+          sprintf(buffer, "%.*s", event->topic_len, event->topic);
+          std::string topic = buffer;
+          sprintf(buffer, "%.*s", event->data_len, event->data);
+          std::string data = buffer;
+          ESP_LOGI(TAG, "Topic: %s, Data: %s", topic.c_str(), data.c_str());
+
+          std::vector<std::string> path;
+          split(topic, '/', &path);
+
+          if (path[0] != "winston" ||
+              path[1] != node_name_ ||
+              path[2] != "in" ||
+              path.size() != 5) {
+            ESP_LOGE(TAG, "Internal error: Bad path: '%s'", topic.c_str());
+            return ESP_ERR_INVALID_ARG;
+          }
+          // Delete the first two elements to turn path into relative path.
+          std::string rel_path = path[3] + "/" + path[4];
+          ESP_LOGI(TAG, "Rel Path: '%s' -> '%s'", rel_path.c_str(), data.c_str());
+
+          auto actuator_event = SensorUpdate {
+            .sensor_path = rel_path,
+            .value_str = data
+          };
+          // Note: This will make a copy of the event payload data.
+          esp_event_post(WINSTON_EVENT, ACTUATOR_EVENT, &actuator_event,
+                         sizeof(actuator_event), portMAX_DELAY);
           break;
+      }
       case MQTT_EVENT_ERROR:
           ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
           break;

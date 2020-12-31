@@ -14,6 +14,7 @@ ESP_EVENT_DECLARE_BASE(WINSTON_EVENT);
 enum {
     WIFI_CONNECTED,
     SENSOR_EVENT,
+    ACTUATOR_EVENT
 };
 
 struct SensorUpdate {

@@ -19,7 +19,7 @@ void split(const std::string& str,
   std::stringstream ss(str);
   std::string token;
   while (std::getline(ss, token, delim)) {
-      items->push_back(token);
+    items->push_back(token);
   }
 }
 
