@@ -40,6 +40,7 @@ Locking* locking;
 ControlHub* control_hub;
 TimeController* time_controller;
 std::vector<Controller*> controllers;
+RequestHandler* request_handler;
 
 MqttService* mqtt;
 std::unique_ptr<Server> server;
@@ -67,7 +68,7 @@ void onWifiConnected() {
 
   // TODO: Might deprecate this way of getting values in favor of MQTT.
   //       Will revive the server to start settings.
-  /*ESP_LOGI(TAG, "Wifi connected. Starting webserver ...");
+  ESP_LOGI(TAG, "Wifi connected. Starting webserver ...");
   if (USE_MONGOOSE) {
     mg_server.reset(new MongooseServer(SERVER_PORT, request_handler));
   } else {
@@ -86,7 +87,7 @@ void onWifiConnected() {
     } else {
       ESP_LOGE(TAG, "Starting the webserver failed.");
     }
-  }*/
+  }
 
   ESP_LOGI(TAG, "Triggering NTP sync");
   time_controller->syncWithNtp();
@@ -173,6 +174,8 @@ void app_main(void) {
 
   control_hub = new ControlHub();
   mqtt = new MqttService(device_settings.mqtt_server_url, device_settings.node_name);
+
+  request_handler = new RequestHandler(time_controller, system_controller);
 
   initNvs();
 

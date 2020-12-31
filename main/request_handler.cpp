@@ -9,8 +9,6 @@
 #include "system_controller.h"
 #include "time_controller.h"
 
-static const char *TAG = "winston-req-handler";
-
 RequestHandler::RequestHandler(TimeController* time,
                                SystemController* system)
     : time_(time),
@@ -18,11 +16,22 @@ RequestHandler::RequestHandler(TimeController* time,
 }
 
 std::string RequestHandler::handle(const std::string& uri) {
-  ESP_LOGI(TAG, "HTTP request incoming for %s", uri.c_str());
+  const std::string io_prefix = "/io";
+  // Ensure request starts with this prefix.
+  if (uri.rfind(io_prefix) != 0) {
+    return "Bad request.";
+  }
+  std::string requestStr(uri.substr(io_prefix.length()));
+  const std::string system_path = "/system/";
+
+  if (requestStr.rfind(system_path, 0) == 0) {
+    std::string req_data(requestStr.substr(system_path.length()));
+    return getSystemValue(req_data);
+  }
   return "Hello, Winston ESP here.";
 }
 
-// /io/sys/[parameter]
+// /io/system/[parameter]
 std::string RequestHandler::getSystemValue(const std::string& req) {
   if (req.find("heap") == 0) {
     return std::to_string(system_->getFreeHeapBytes() / 1024) +  " KB";
