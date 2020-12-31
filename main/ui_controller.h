@@ -8,6 +8,7 @@
 
 #include "esp_event.h"
 
+#include "controller.h"
 #include "display_controller.h"
 #include "system_controller.h"
 #include "time_controller.h"
@@ -19,7 +20,7 @@ class UiController : public Controller {
                SystemController* system_controller);
   // Enables listening to events to update display contents.
   bool init() override;
-  std::vector<SensorConfig*> getSensors() const override;
+  std::vector<SensorConfig*> getSensors() override;
  private:
   DisplayController* display_;
   TimeController* time_;

@@ -24,7 +24,7 @@ bool EspTempController::init() {
 }
 
 // override
-std::vector<SensorConfig*> EspTempController::getSensors() const {
+std::vector<SensorConfig*> EspTempController::getSensors() {
   std::vector<SensorConfig*> sensors;
   sensors.push_back(new SensorConfig {
     .name = "temp",

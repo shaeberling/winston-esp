@@ -187,7 +187,7 @@ void app_main(void) {
 
   for(auto* controller : controllers) {
     controller->init();
-    control_hub->registerController(*controller);
+    control_hub->registerController(controller);
   }
 }
 

@@ -23,6 +23,7 @@ component {
 component {
   name: "pir"
   gpio_pin: 4
+  id: "main"
 }
 
 component {

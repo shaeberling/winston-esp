@@ -25,7 +25,7 @@ class Controller {
 
   // Returns a list of sensor configurations.
   // Caller owns the pointers!
-  virtual std::vector<SensorConfig*> getSensors() const;
+  virtual std::vector<SensorConfig*> getSensors();
 
   // Initializes the controller.
   virtual bool init();

@@ -17,12 +17,13 @@ static const char *TAG = "win-system";
 SystemController::SystemController(const std::string& node_name)
         : node_name_(node_name) {}
 
+// override
 bool SystemController::init() {
   return true;
 }
 
 // override
-std::vector<SensorConfig*> SystemController::getSensors() const {
+std::vector<SensorConfig*> SystemController::getSensors() {
   std::vector<SensorConfig*> sensors;
 
   auto* c = new SensorConfig {

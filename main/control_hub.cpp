@@ -27,9 +27,9 @@ struct TaskConfig {
 
 ControlHub::ControlHub() {}
 
-void ControlHub::registerController(const Controller& controller) {
+void ControlHub::registerController(Controller* controller) {
   // Note, we are owning the config pointers.
-  auto sensors = controller.getSensors();
+  auto sensors = controller->getSensors();
   for (auto& config : sensors) {
     registerSensor(config);
   }

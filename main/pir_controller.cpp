@@ -7,6 +7,8 @@
 #include <esp_event.h>
 #include <esp_log.h>
 
+#include "controller.h"
+
 namespace {
   // Forward C-style interrupt callbacks to class.
   static void IRAM_ATTR gpio_isr_handler(void* arg) {
@@ -19,25 +21,43 @@ static const char *TAG = "win-pir-cntrl";
 
 // TODO: Could we combine this and ReedController by e.g. emulating an "open"
 //       condition for N seconds after the last motion event?
-PIRController::PIRController(const gpio_num_t pin)
-    :pin_(pin), counter_(0) {
+PIRController::PIRController(const std::string& id, const gpio_num_t pin)
+    :id_(id), pin_(pin), motion_encountered_(false) {
 };
 
-// public
-void PIRController::init() {
+// override
+bool PIRController::init() {
   ESP_LOGI(TAG, "Initializing PIR sensor on GPIO %d", pin_);
   initPin(pin_);
+  return true;
 }
 
-// This is mostly for debugging.
-int PIRController::getMotionCount() {
-  return counter_;
+// override
+std::vector<SensorConfig*> PIRController::getSensors() {
+  std::vector<SensorConfig*> sensors;
+
+  auto* c = new SensorConfig {
+    .name = "pir",
+    .id = id_,
+    .update_interval_seconds = 5,
+    .get_value = [this](void){ return std::to_string(this->motionSinceLastCall()); }
+  };
+  sensors.push_back(c);
+
+  return sensors;
+}
+
+// private
+bool PIRController::motionSinceLastCall() {
+  auto result = motion_encountered_;
+  motion_encountered_ = false;
+  return result;
 }
 
 // private
 void PIRController::onInterruptEvent() {
   // Note: Called by interrupt. Keep it short and no serial printing!
-  this->counter_++;
+  this->motion_encountered_ = true;
 }
 
 // private 

@@ -85,7 +85,7 @@ bool HTU21DController::init() {
 }
 
 // override
-std::vector<SensorConfig*> HTU21DController::getSensors() const {
+std::vector<SensorConfig*> HTU21DController::getSensors() {
   std::vector<SensorConfig*> sensors;
 
   sensors.push_back(new SensorConfig {

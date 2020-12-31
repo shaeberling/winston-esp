@@ -35,7 +35,7 @@ UiController::UiController(DisplayController* display,
 }
 
 // override
-std::vector<SensorConfig*> UiController::getSensors() const {
+std::vector<SensorConfig*> UiController::getSensors() {
   return {};
 }
 

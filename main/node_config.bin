@@ -1,9 +1,9 @@
 
-office-debugmqtt://192.168.86.200PST8PDT"
+office-debugmqtt://192.168.86.200PST8PDT"
+ssd1306display"
 htu21dmain"
-esp-tempinternal"
-ssd1306display"
-pir"
+esp-tempinternal"
+pirmain"
 reedgarage1"
 reedgarage2"
 relaygarage1"
