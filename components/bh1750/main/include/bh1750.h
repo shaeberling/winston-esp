@@ -15,7 +15,6 @@
 #ifndef BH1750_H_
 #define BH1750_H_
 
-#include "bh1750.h"
 #define BH1750_ADDRESS1 0x23
 #define BH1750_ADDRESS2 0x5C
 #define BH1750_POWER_DOWN 0x00
