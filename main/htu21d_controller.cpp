@@ -1,7 +1,6 @@
 #include "htu21d_controller.h"
 
 #include "controller.h"
-#include "htu21d_controller.h"
 #include "locking.h"
 
 #include "driver/gpio.h"
