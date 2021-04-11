@@ -135,7 +135,7 @@ int HTU21DController::getRawWithLock(int command) const {
     return 0;
   }
   int value = this->getRaw(command);
-    if (!this->locking_->unlockI2C(TAG)) {
+  if (!this->locking_->unlockI2C(TAG)) {
     ESP_LOGE(TAG, "Cannot unlock I2C bus access.");
     return 0;
   }
