@@ -27,7 +27,7 @@
 #define BH1750_ONE_TIME_HIGH_RES_MODE_2 0x21
 #define BH1750_ONE_TIME_LOW_RES_MODE 0x23
 
-void bh1750_init(void);
+void bh1750_init(uint8_t pin_scl, uint8_t pin_sda);
 float bh1750_read(void);
 void bh1750_deinit(void);
 

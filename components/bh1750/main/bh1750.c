@@ -29,8 +29,6 @@ static const char *TAG = "bh1750";
 #define I2C_ADDR BH1750_ADDRESS1
 #define BH1750_MODE BH1750_CONTINUOUS_HIGH_RES_MODE
 
-#define PIN_SDA 21
-#define PIN_SCL 22
 #define I2C_MASTER_NUM I2C_NUM_1   /*!< I2C port number for master dev */
 #define I2C_MASTER_TX_BUF_DISABLE   0   /*!< I2C master do not need buffer */
 #define I2C_MASTER_RX_BUF_DISABLE   0   /*!< I2C master do not need buffer */
@@ -44,7 +42,7 @@ int bh1750_I2C_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint
 int bh1750_I2C_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t cnt);
 
 void bh1750_reset(void) {
-    ESP_LOGE(TAG, "reset");
+  ESP_LOGE(TAG, "reset");
   bh1750_I2C_write(I2C_ADDR, BH1750_POWER_ON, NULL, 0);
   bh1750_I2C_write(I2C_ADDR, BH1750_RESET, NULL, 0);
   vTaskDelay(10 / portTICK_RATE_MS); // sleep 10ms
@@ -77,17 +75,17 @@ float bh1750_read(void) {
   }
 
   ret=bh1750_I2C_write(I2C_ADDR, mode, NULL, 0);
-    if (ret != ESP_OK) {
-      bh1750_reset();
-      return -1;
-    }
+  if (ret != ESP_OK) {
+    bh1750_reset();
+    return -1;
+  }
 
   vTaskDelay(sleepms / portTICK_RATE_MS); // sleep ms
   ret=bh1750_I2C_read(I2C_ADDR, 0xFF, buf, 2);
-    if (ret != ESP_OK) {
-      bh1750_reset();
-      return 0;
-    }
+  if (ret != ESP_OK) {
+    bh1750_reset();
+    return 0;
+  }
   uint16_t luxraw = (uint16_t)(((uint16_t)(buf[0]<<8))|((uint16_t)buf[1]));
   luxval = (float)luxraw/1.2/resdiv;
   ESP_LOGI(TAG, "sensraw=%u lux=%f", luxraw,luxval);
@@ -95,29 +93,28 @@ float bh1750_read(void) {
   return luxval;
 }
 
-void bh1750_init(void) {
+void bh1750_init(uint8_t pin_scl, uint8_t pin_sda) {
+  i2c_config_t conf;
+  conf.mode = I2C_MODE_MASTER;
 
-    i2c_config_t conf;
-    conf.mode = I2C_MODE_MASTER;
-  ESP_LOGI(TAG, "sda_io_num %d", PIN_SDA);
-    conf.sda_io_num = PIN_SDA;
-    conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
-  ESP_LOGI(TAG, "scl_io_num %d", PIN_SCL);
-    conf.scl_io_num = PIN_SCL;
-    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
+  ESP_LOGI(TAG, "sda_io_num %d", pin_sda);
+  conf.sda_io_num = pin_sda;
+  conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
+  ESP_LOGI(TAG, "scl_io_num %d", pin_scl);
+  conf.scl_io_num = pin_scl;
+  conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
+
   ESP_LOGI(TAG, "clk_speed %d", I2C_MASTER_FREQ_HZ);
-    conf.master.clk_speed = I2C_MASTER_FREQ_HZ;
+  conf.master.clk_speed = I2C_MASTER_FREQ_HZ;
   ESP_LOGI(TAG, "i2c_param_config %d", conf.mode);
-    ESP_ERROR_CHECK(i2c_param_config(I2C_MASTER_NUM, &conf));
+  ESP_ERROR_CHECK(i2c_param_config(I2C_MASTER_NUM, &conf));
   ESP_LOGI(TAG, "i2c_driver_install %d", I2C_MASTER_NUM);
-    ESP_ERROR_CHECK(i2c_driver_install(I2C_MASTER_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0));
-
+  ESP_ERROR_CHECK(i2c_driver_install(I2C_MASTER_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0));
 }
 
 void bh1750_deinit(void) {
   ESP_LOGI(TAG, "i2c_driver_delete");
   ESP_ERROR_CHECK(i2c_driver_delete(I2C_MASTER_NUM));
-
 }
 
 /*  \Brief: The function is used as I2C bus read
@@ -147,10 +144,9 @@ int bh1750_I2C_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint
   i2c_master_stop(cmd);
   ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_RATE_MS);
   i2c_cmd_link_delete(cmd);
-    if (ret != ESP_OK) {
-      ESP_LOGE(TAG, "bh1750_I2C_write write data fail I2CAddress 0x%02X len %d reg 0x%02X", dev_addr,cnt,reg_addr);
-    }
-
+  if (ret != ESP_OK) {
+    ESP_LOGE(TAG, "bh1750_I2C_write write data fail I2CAddress 0x%02X len %d reg 0x%02X", dev_addr,cnt,reg_addr);
+  }
   return ret;
 }
 
@@ -192,17 +188,15 @@ int bh1750_I2C_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8
   i2c_master_stop(cmd);
   ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_RATE_MS);
   i2c_cmd_link_delete(cmd);
-    if (ret != ESP_OK) {
-      ESP_LOGE(TAG, "bh1750_I2C_read read data fail %d",ret);
-        return ret;
-    }
-    if (LOG_LOCAL_LEVEL >= ESP_LOG_DEBUG) {
+  if (ret != ESP_OK) {
+    ESP_LOGE(TAG, "bh1750_I2C_read read data fail %d",ret);
+      return ret;
+  }
+  if (LOG_LOCAL_LEVEL >= ESP_LOG_DEBUG) {
     for (pos = 0; pos < cnt; pos++) {
       printf("0x%02X ",*(reg_data + pos));
     }
     printf("\n");
-    }
-
-
+  }
   return ret;
 }
