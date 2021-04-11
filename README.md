@@ -56,7 +56,7 @@ Inside winston-esp, cd into `main/proto` and run `nanopb_generator ./device_sett
 
 
 ### 0.4  (in progress)
- - Overarching goal: Dynamic config, MQTT, internal events - feature complete with 0.3.
+ - Overarching goal: Dynamic config, MQTT, internal events, feature complete for physical box 1.0.
  - Revamped internal event system for modules to publish updates to both MQTT as well as a connected screen ✓
  - Node set-up is controlled by a protocol buffer. This enables nodes to be different by changing their embedded configuration instead of re-compiling. ✓
  - Move timezone setting to be dynamic, instead of in code ✓
@@ -65,6 +65,7 @@ Inside winston-esp, cd into `main/proto` and run `nanopb_generator ./device_sett
  - Display: Show MAC address ✓
  - Display: Make connection status more compact ✓
  - Display: Show temp sensor data ✓
+ - Added support for BH1750 ambient light sensor ✓
  - Added support for PIR motion sensors through interrupts ✓
  - Added support for MQTT, receiving and publishing ✓
 
