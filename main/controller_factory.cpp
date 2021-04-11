@@ -6,6 +6,7 @@
 #include "driver/gpio.h"
 
 #include "controller.h"
+#include "bh1750_controller.h"
 #include "device_settings.pb.h"
 #include "esp_temp_controller.h"
 #include "htu21d_controller.h"
@@ -38,6 +39,8 @@ Controller* ControllerFactory::createController(const ComponentProto& comp) {
 
   if (strcmp(comp.name, "htu21d") == 0) {
     return new HTU21DController(comp.id, gpio_0, gpio_1, locking_);
+  } else if (strcmp(comp.name, "bh1750") == 0) {
+    return new BH1750Controller(comp.id, gpio_0, gpio_1, locking_);
   } else if (strcmp(comp.name, "esp-temp") == 0) {
     return new EspTempController(comp.id);
   } else if (strcmp(comp.name, "ssd1306") == 0) {

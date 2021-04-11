@@ -1,10 +1,12 @@
 
 office-debugmqtt://192.168.86.200PST8PDT"
 ssd1306display"
-htu21dmain"
+htu21dmain"
+bh1750main !"
 esp-tempinternal"
 pirmain"
 reedgarage1"
 reedgarage2"
 relaygarage1"
+relaygarage2"
 relaygarage2

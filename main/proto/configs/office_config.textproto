@@ -16,6 +16,12 @@ component {
   id: "main"
 }
 component {
+  name: "bh1750"
+  gpio_pin: 32
+  gpio_pin: 33
+  id: "main"
+}
+component {
   name: "esp-temp"
   id: "internal"
 }
@@ -47,3 +53,9 @@ component {
   gpio_pin: 25
   id: "garage2"
 }
+component {
+  name: "relay"
+  gpio_pin: 25
+  id: "garage2"
+}
+
