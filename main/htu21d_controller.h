@@ -32,6 +32,7 @@ class HTU21DController : public Controller {
 
   bool initialized_;
 
+  bool initInternal();
   int getRawWithLock(int command) const;
   int getRaw(int command) const;
 };

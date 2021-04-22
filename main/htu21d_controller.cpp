@@ -32,16 +32,25 @@ HTU21DController::HTU21DController(const std::string& id,
 
 // override
 bool HTU21DController::init() {
+  if (!this->locking_->lockI2C(TAG)) {
+    ESP_LOGE(TAG, "Cannot lock I2C bus access.");
+    return false;
+  }
+  bool result = initInternal();
+  if (!this->locking_->unlockI2C(TAG)) {
+    ESP_LOGE(TAG, "Cannot unlock I2C bus access.");
+    return false;
+  }
+  return result;
+}
+
+// private
+bool HTU21DController::initInternal() {
   if (initialized_) {
     ESP_LOGW(TAG, "HTU21D controller already initialized.");
     return false;
   }
   esp_err_t ret;
-
-  if (!this->locking_->lockI2C(TAG)) {
-    ESP_LOGE(TAG, "Cannot lock I2C bus access.");
-    return false;
-  }
 
   // I2C basic setup.
   i2c_config_t conf;
@@ -75,10 +84,6 @@ bool HTU21DController::init() {
   }
   ESP_LOGI(TAG, "Link to HTU21D established.");
 
-  if (!this->locking_->unlockI2C(TAG)) {
-    ESP_LOGE(TAG, "Cannot unlock I2C bus access.");
-    return false;
-  }
   initialized_ = true;
   return true;
 }
