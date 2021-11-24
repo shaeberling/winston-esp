@@ -106,6 +106,7 @@ void bh1750_init(uint8_t pin_scl, uint8_t pin_sda) {
 
   ESP_LOGI(TAG, "clk_speed %d", I2C_MASTER_FREQ_HZ);
   conf.master.clk_speed = I2C_MASTER_FREQ_HZ;
+  conf.clk_flags = I2C_SCLK_SRC_FLAG_FOR_NOMAL;
   ESP_LOGI(TAG, "i2c_param_config %d", conf.mode);
   ESP_ERROR_CHECK(i2c_param_config(I2C_MASTER_NUM, &conf));
   ESP_LOGI(TAG, "i2c_driver_install %d", I2C_MASTER_NUM);
