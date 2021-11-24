@@ -8,13 +8,13 @@
 #define ENABLE_LOGGING false
 
 static const char *TAG = "winston-locking";
-static const int TAKE_DELAY_MILLIS = 1000;
+static const int TAKE_DELAY_MILLIS = 10000;
 
 Locking::Locking()
     : i2c_handle_(xSemaphoreCreateMutex()) {
 }
 
-// public 
+// public
 bool Locking::lockI2C(const char* who) {
   if (this->i2c_handle_ == NULL) {
     ESP_LOGE(TAG, "[%s] Semaphore not created successfully", who);
@@ -31,5 +31,8 @@ bool Locking::unlockI2C(const char* who) {
     return false;
   }
   if (ENABLE_LOGGING) ESP_LOGI(TAG, "[%s] Unlocking I2C", who);
+
+  // With a little delay to space out i2c operations.
+  vTaskDelay(100 / portTICK_PERIOD_MS);
   return xSemaphoreGive(this->i2c_handle_) == pdTRUE;
 }
