@@ -20,6 +20,7 @@ static const char *TAG = "win-ctrl-hub";
 namespace {
 
 struct TaskConfig {
+  std::function<bool()> initializer;
   SensorConfig* config;
   ControlHub* hub;
 };
@@ -31,7 +32,7 @@ ControlHub::ControlHub() {
                                &ControlHub::actuator_event_handler, this);
 }
 
-void ControlHub::handleActuatorEvent(esp_event_base_t event_base, 
+void ControlHub::handleActuatorEvent(esp_event_base_t event_base,
                                      int32_t event_id, void* event_data) {
   if (event_base != WINSTON_EVENT || event_id != ACTUATOR_EVENT) {
     return;
@@ -46,7 +47,7 @@ void ControlHub::handleActuatorEvent(esp_event_base_t event_base,
 }
 
 // static
-void ControlHub::actuator_event_handler(void* arg, esp_event_base_t event_base, 
+void ControlHub::actuator_event_handler(void* arg, esp_event_base_t event_base,
                                         int32_t event_id, void* event_data) {
   static_cast<ControlHub*>(arg)->handleActuatorEvent(event_base,
                                                      event_id,
@@ -57,21 +58,27 @@ void ControlHub::registerController(Controller* controller) {
   std::vector<SensorConfig*> sensors;
   std::vector<ActuatorConfig*> actuators;
   controller->registerIO(&sensors, &actuators);
+
+  // Sensors need to be initialized on the same thread/core as they will be
+  // accessed on.
+  std::function<bool()> initializer = std::bind(&Controller::init, controller);
   // Note, we are owning the config pointers.
   for (auto* config : sensors) {
-    registerSensor(config);
+    registerSensor(initializer, config);
   }
   for (auto* config : actuators) {
-    registerActuator(config);
+    registerActuator(initializer, config);
   }
 }
 
-void ControlHub::registerSensor(SensorConfig* config) {
+void ControlHub::registerSensor(std::function<bool()> initializer,
+                                SensorConfig* config) {
   std::string task_name = "sensor_updater_" + config->name + "_" + config->id;
   ESP_LOGI(TAG, "Registering new sensor: %s", task_name.c_str());
 
   // Needs to be on the heap, not stack.
   TaskConfig* task = new TaskConfig {
+    .initializer = initializer,
     .config = config,
     .hub = this
   };
@@ -86,15 +93,20 @@ void ControlHub::registerSensor(SensorConfig* config) {
   }
 }
 
-void ControlHub::registerActuator(ActuatorConfig* config) {
-  std::string rel_path = config->name + "/" + config->id;
+void ControlHub::registerActuator(std::function<bool()> initializer,
+                                  ActuatorConfig* config) {
+  std::string path = config->name + "/" + config->id;
+  if (initializer()) {
+    ESP_LOGI(TAG, "Actuator initialized [%s]", path.c_str());
+  }
   actuators_.insert(
       std::pair<std::string, std::function<bool(const std::string&)>>(
-          rel_path, config->set_value)); 
+          path, config->set_value));
 }
 
 // private
-void ControlHub::onSensorUpdate(const std::string& path, const std::string& value) {
+void ControlHub::onSensorUpdate(const std::string& path,
+                                const std::string& value) {
   auto sensor_event = SensorUpdate {
     .sensor_path = path,
     .value_str = value
@@ -111,10 +123,17 @@ void ControlHub::startUpdateLoop(void* param) {
   const auto* config = task->config;
   auto path = config->name + "/" + config->id;
 
+  // Since we start a separate task for each sensor, it is OK for a controller
+  // already be initialized.
+  bool success = task->initializer();
+  if (success) {
+    ESP_LOGI(TAG, "Sensor initialized [%s]", path.c_str());
+  }
+
   // We don't want to or need to stop a loop of a sensor right now.
   while(true) {
     task->hub->onSensorUpdate(path, config->get_value());
     vTaskDelay(config->update_interval_seconds * 1000 / portTICK_PERIOD_MS);
   }
-  // elete task;
+  // delete task;
 }

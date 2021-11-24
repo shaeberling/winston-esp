@@ -28,12 +28,14 @@ class ControlHub {
   const TimeController* time_controller_;
   std::map<std::string, std::function<bool(const std::string&)>> actuators_;
 
-  void registerSensor(SensorConfig* config);
-  void registerActuator(ActuatorConfig* config);
+  void registerSensor(std::function<bool()> initializer,
+                      SensorConfig* config);
+  void registerActuator(std::function<bool()> initializer,
+                        ActuatorConfig* config);
   void onSensorUpdate(const std::string& path, const std::string& value);
-  void handleActuatorEvent(esp_event_base_t event_base, 
+  void handleActuatorEvent(esp_event_base_t event_base,
                            int32_t event_id, void* event_data);
-  static void actuator_event_handler(void* arg, esp_event_base_t event_base, 
+  static void actuator_event_handler(void* arg, esp_event_base_t event_base,
                                      int32_t event_id, void* event_data);
   static void startUpdateLoop(void* param);
 };
