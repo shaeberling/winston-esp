@@ -22,6 +22,8 @@
 #include "ui_controller.h"
 #include "wifi.h"
 
+#include <i2c.h>
+
 #define WIFI_SSID    CONFIG_WINSTON_WIFI_SSID
 #define WIFI_PASS    CONFIG_WINSTON_WIFI_PASSWORD
 
@@ -46,6 +48,21 @@ MqttService* mqtt;
 std::unique_ptr<Server> server;
 std::unique_ptr<MongooseServer> mg_server;
 Wifi* wifi;
+
+
+// We want to do this after Wifi and all else is initialized so that I2c comms
+// are less likely to fail.
+void initializeControllers() {
+  // Note: This will change ADC config and will use up some pins around 36.
+  // TODO: Make this a start-up config parameter.
+  // hall_controller->init();
+  // pir_controller->init(); // Note: Needs interrupts.
+
+  // Registering will also initialize them.
+  for(auto* controller : controllers) {
+    control_hub->registerController(controller);
+  }
+}
 
 /** Called when WIFI connected (we have an IP). */
 void onWifiConnected() {
@@ -94,9 +111,11 @@ void onWifiConnected() {
 
   ESP_LOGI(TAG, "Initializing MQTT");
   mqtt->init();
+
+  initializeControllers();
 }
 
-void event_handler(void* arg, esp_event_base_t event_base, 
+void event_handler(void* arg, esp_event_base_t event_base,
                    int32_t event_id, void* event_data) {
   if (event_base == WINSTON_EVENT && event_id == WIFI_CONNECTED) {
     onWifiConnected();
@@ -159,6 +178,7 @@ void app_main(void) {
   time_controller = new TimeController(device_settings.time_zone);
 
   controllers.push_back(system_controller);
+
   ControllerFactory factory(locking, time_controller, system_controller);
   for (auto& component : settings.components) {
     auto* controller = factory.createController(component);
@@ -171,7 +191,6 @@ void app_main(void) {
   // See usable GPIOs here:
   // https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
 
-
   control_hub = new ControlHub();
   mqtt = new MqttService(device_settings.mqtt_server_url, device_settings.node_name);
 
@@ -183,15 +202,10 @@ void app_main(void) {
   wifi = new Wifi;
   wifi->connect(WIFI_SSID, WIFI_PASS);
 
-  // Note: This will change ADC config and will use up some pins around 36.
-  // TODO: Make this a start-up config parameter.
-  // hall_controller->init();
-  // pir_controller->init(); // Note: Needs interrupts.
-
-  for(auto* controller : controllers) {
-    controller->init();
-    control_hub->registerController(controller);
-  }
+  // Uncomment this to scan for I2C devices on any pin pair.
+  // I2C_Util i2c;
+  // i2c.init(0x00, GPIO_NUM_17, GPIO_NUM_16);
+  // i2c.scan();
 }
 
 } // extern "C"
