@@ -22,7 +22,7 @@ static bool debug = false;
  * @brief Create an instance of an %I2C object.
  * @return N/A.
  */
-I2C::I2C() {
+I2C_Util::I2C_Util() {
 	m_directionKnown = false;
 	m_address = 0;
 	m_cmd     = 0;
@@ -38,7 +38,7 @@ I2C::I2C() {
  * Begin a transaction by adding an %I2C start to the queue.
  * @return N/A.
  */
-void I2C::beginTransaction() {
+void I2C_Util::beginTransaction() {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "beginTransaction()");
 	}
@@ -58,7 +58,7 @@ void I2C::beginTransaction() {
  * beginTransaction() function.  An %I2C stop() is also called.
  * @return N/A.
  */
-void I2C::endTransaction() {
+void I2C_Util::endTransaction() {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "endTransaction()");
 	}
@@ -81,7 +81,7 @@ void I2C::endTransaction() {
  *
  * @return The address of the %I2C slave.
  */
-uint8_t I2C::getAddress() const {
+uint8_t I2C_Util::getAddress() const {
 	return m_address;
 }
 
@@ -94,8 +94,8 @@ uint8_t I2C::getAddress() const {
  * @param [in] sclPin The pin to use for SCL clock.
  * @return N/A.
  */
-void I2C::init(uint8_t address, gpio_num_t sdaPin, gpio_num_t sclPin, uint32_t clockSpeed, i2c_port_t portNum, bool pullup) {
-	ESP_LOGD(LOG_TAG, ">> I2c::init.  address=%d, sda=%d, scl=%d, clockSpeed=%d, portNum=%d", address, sdaPin, sclPin, clockSpeed, portNum);
+void I2C_Util::init(uint8_t address, gpio_num_t sdaPin, gpio_num_t sclPin, uint32_t clockSpeed, i2c_port_t portNum, bool pullup) {
+	ESP_LOGI(LOG_TAG, ">> I2C_Util::init.  address=%d, sda=%d, scl=%d, clockSpeed=%d, portNum=%d", address, sdaPin, sclPin, clockSpeed, portNum);
 	assert(portNum < I2C_NUM_MAX);
 	m_portNum = portNum;
 	m_sdaPin  = sdaPin;
@@ -109,6 +109,7 @@ void I2C::init(uint8_t address, gpio_num_t sdaPin, gpio_num_t sclPin, uint32_t c
 	conf.sda_pullup_en    = pullup ? GPIO_PULLUP_ENABLE : GPIO_PULLUP_DISABLE;
 	conf.scl_pullup_en    = pullup ? GPIO_PULLUP_ENABLE : GPIO_PULLUP_DISABLE;
 	conf.master.clk_speed =  clockSpeed;
+	conf.clk_flags = I2C_SCLK_SRC_FLAG_FOR_NOMAL;
 	esp_err_t errRc = ::i2c_param_config(m_portNum, &conf);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "i2c_param_config: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
@@ -131,7 +132,7 @@ void I2C::init(uint8_t address, gpio_num_t sdaPin, gpio_num_t sclPin, uint32_t c
  * @param [in] ack Whether or not we should send an ACK to the slave after reading a byte.
  * @return N/A.
  */
-void I2C::read(uint8_t* bytes, size_t length, bool ack) {
+void I2C_Util::read(uint8_t* bytes, size_t length, bool ack) {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "read(size=%d, ack=%d)", length, ack);
 	}
@@ -156,7 +157,7 @@ void I2C::read(uint8_t* bytes, size_t length, bool ack) {
  * @param [in] ack Whether or not we should send an ACK to the slave after reading a byte.
  * @return N/A.
  */
-void I2C::read(uint8_t* byte, bool ack) {
+void I2C_Util::read(uint8_t* byte, bool ack) {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "read(size=1, ack=%d)", ack);
 	}
@@ -178,7 +179,7 @@ void I2C::read(uint8_t* byte, bool ack) {
  * to the serial output describing what devices (if any) were found.
  * @return N/A.
  */
-void I2C::scan() {
+void I2C_Util::scan() {
 	printf("Data Pin: %d, Clock Pin: %d\n", this->m_sdaPin, this->m_sclPin);
 	printf("     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f\n");
 	printf("00:         ");
@@ -201,7 +202,7 @@ void I2C::scan() {
  *
  * @param [in] address The address of the %I2C slave.
  */
-void I2C::setAddress(uint8_t address) {
+void I2C_Util::setAddress(uint8_t address) {
 	this->m_address = address;
 } // setAddress
 
@@ -211,7 +212,7 @@ void I2C::setAddress(uint8_t address) {
  * @param [in] enabled Should debugging be enabled or disabled.
  * @return N/A.
  */
-void I2C::setDebug(bool enabled) {
+void I2C_Util::setDebug(bool enabled) {
 	debug = enabled;
 } // setDebug
 
@@ -221,7 +222,7 @@ void I2C::setDebug(bool enabled) {
  * @param [in] The address of the slave.
  * @return True if the slave is present and false otherwise.
  */
-bool I2C::slavePresent(uint8_t address) {
+bool I2C_Util::slavePresent(uint8_t address) {
 	i2c_cmd_handle_t cmd = ::i2c_cmd_link_create();
 	::i2c_master_start(cmd);
 	::i2c_master_write_byte(cmd, (address << 1) | I2C_MASTER_WRITE, 1 /* expect ack */);
@@ -237,7 +238,7 @@ bool I2C::slavePresent(uint8_t address) {
  * @brief Add an %I2C start request to the command stream.
  * @return N/A.
  */
-void I2C::start() {
+void I2C_Util::start() {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "start()");
 	}
@@ -253,7 +254,7 @@ void I2C::start() {
  * @brief Add an %I2C stop request to the command stream.
  * @return N/A.
  */
-void I2C::stop() {
+void I2C_Util::stop() {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "stop()");
 	}
@@ -272,7 +273,7 @@ void I2C::stop() {
  * @param[in] ack Whether or not an acknowledgment is expected from the slave.
  * @return N/A.
  */
-void I2C::write(uint8_t byte, bool ack) {
+void I2C_Util::write(uint8_t byte, bool ack) {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "write(val=0x%.2x, ack=%d)", byte, ack);
 	}
@@ -298,7 +299,7 @@ void I2C::write(uint8_t byte, bool ack) {
  * @param [in] ack Whether or not an acknowledgment is expected from the slave.
  * @return N/A.
  */
-void I2C::write(uint8_t *bytes, size_t length, bool ack) {
+void I2C_Util::write(uint8_t *bytes, size_t length, bool ack) {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "write(length=%d, ack=%d)", length, ack);
 	}

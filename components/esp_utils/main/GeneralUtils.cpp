@@ -12,9 +12,9 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
-#include "FreeRTOS.h"
+#include "freertos/FreeRTOS.h"
 #include <esp_err.h>
-#include <nvs.h>
+#include "nvs_flash.h"
 #include <esp_wifi.h>
 #include <esp_heap_caps.h>
 #include <esp_system.h>

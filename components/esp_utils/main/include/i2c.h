@@ -16,7 +16,7 @@
 /**
  * @brief Interface to %I2C functions.
  */
-class I2C {
+class I2C_Util {
 public:
 	/**
 	 * @brief The default SDA pin.
@@ -33,7 +33,7 @@ public:
 	 */
 	static const uint32_t DEFAULT_CLK_SPEED = 100000;
 
-	I2C();
+	I2C_Util();
 	void beginTransaction();
 	void endTransaction();
 	uint8_t getAddress() const;
