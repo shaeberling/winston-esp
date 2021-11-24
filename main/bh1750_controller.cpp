@@ -14,7 +14,7 @@ static const char* TAG = "bh1750-ctrl";
 static const int HTU21D_ADDR = 0x23;
 
 
-extern "C" { 
+extern "C" {
 #include "bh1750.h"
 void initSensor(uint8_t pin_scl, uint8_t pin_sda) {
   bh1750_init(pin_scl, pin_sda);
@@ -72,7 +72,7 @@ void BH1750Controller::registerIO(std::vector<SensorConfig*>* sensors,
 
 float BH1750Controller::getLux() const {
   if (!initialized_) {
-    ESP_LOGE(TAG, "HTU21D controller not initialized.");
+    ESP_LOGE(TAG, "BH1750 controller not initialized.");
     return -1;
   }
   if (!this->locking_->lockI2C(TAG)) {
