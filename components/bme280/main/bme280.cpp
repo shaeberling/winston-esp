@@ -5,10 +5,10 @@
 *      Author: Alexander Sparkowsky
 */
 
-#include "BME280.h"
+#include "bme280.h"
 #include <esp_log.h>
 #include <math.h>
-#include <cstdint>
+#include <stdint.h>
 #include <I2C.h>
 
 static char LOG_TAG[] = "bme280";
@@ -22,7 +22,7 @@ static bool debug = false;
 * @param [in] address The %I2C address of the device on the %I2C bus.
 */
 BME280::BME280(uint8_t address) {
-    i2c.setAddress(address);
+  _address = address;
 }
 
 /**
@@ -342,7 +342,7 @@ esp_err_t BME280::init(gpio_num_t sdaPin, gpio_num_t clkPin) {
     }
 
     i2c.setDebug(false);
-    i2c.init(BME280_ADDRESS, sdaPin, clkPin);
+    i2c.init(_address, sdaPin, clkPin);
 
     _sensor_id = readChipId();
     if (_sensor_id != 0x60) {

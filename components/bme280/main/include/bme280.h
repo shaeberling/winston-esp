@@ -6,7 +6,11 @@
  */
 #ifndef COMPONENTS_BME280_BME280_H_
 #define COMPONENTS_BME280_BME280_H_
-#include <I2C.h>
+
+#include <i2c.h>
+#include <stdint.h>
+#include <esp_err.h>
+#include "driver/gpio.h"
 
 /*=========================================================================
 I2C ADDRESS/BITS
@@ -137,7 +141,7 @@ public:
 	BME280(uint8_t address=BME280_ADDRESS);
 	virtual ~BME280();
 	void setDebug(bool enabled);
-	esp_err_t init(gpio_num_t sdaPin=I2C::DEFAULT_SDA_PIN, gpio_num_t clkPin=I2C::DEFAULT_CLK_PIN);
+	esp_err_t init(gpio_num_t sdaPin=I2C_Util::DEFAULT_SDA_PIN, gpio_num_t clkPin=I2C_Util::DEFAULT_CLK_PIN);
 
     float altitudeOfPressure(float pressure, float seaLevel);
     float seaLevelForAltitude(float altitude, float atmospheric);
@@ -149,8 +153,7 @@ public:
     uint8_t readChipId(void);
 
 private:
-	I2C i2c = I2C();
-
+    I2C_Util i2c = I2C_Util();
     void readCoefficients(void);
     uint8_t readRegister8(uint8_t reg);
     uint16_t read16BitBigEndianRegister(uint8_t reg);
@@ -168,6 +171,7 @@ private:
     float convertUncompensatedPressure(BME280_S32_t adc_P);
     float convertUncompensatedHumidity(BME280_S32_t adc_H);
 
+    uint8_t _address;
     int32_t _sensor_id;
     int32_t _t_fine;
 
