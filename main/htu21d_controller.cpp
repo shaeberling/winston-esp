@@ -15,9 +15,9 @@ static const char* TAG = "htu21d-ctrl";
 
 static const int HTU21D_ADDR = 0x40;
 
-
 static const int TEMP_NO_HOLD_MASTER = 0xF3;
 static const int HUMI_NO_HOLD_MASTER = 0xF5;
+static const int RESET = 0xFE;
 
 HTU21DController::HTU21DController(const std::string& id,
                                    const gpio_num_t scl,
@@ -57,25 +57,27 @@ bool HTU21DController::initInternal() {
   conf.mode = I2C_MODE_MASTER;
   conf.sda_io_num = this->gpio_sda_;
   conf.scl_io_num = this->gpio_scl_;
-  conf.sda_pullup_en = GPIO_PULLUP_ONLY;
-  conf.scl_pullup_en = GPIO_PULLUP_ONLY;
+  conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
+  conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
   conf.master.clk_speed = 100000;
+  conf.clk_flags = I2C_SCLK_SRC_FLAG_FOR_NOMAL;
+
   ret = i2c_param_config(I2C_NUM_0, &conf);
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "Failed to comfigure I2C for HTU21D.");
     return false;
   }
-  
+
   ret = i2c_driver_install(I2C_NUM_0, I2C_MODE_MASTER, 0, 0, 0);
   if(ret != ESP_OK) {
     ESP_LOGE(TAG, "Failed to install I2C driver for HTU21D.");
     return false;
   }
-  
+
   // Check if we can talk to the sensor.
   i2c_cmd_handle_t cmd = i2c_cmd_link_create();
   i2c_master_start(cmd);
-  i2c_master_write_byte(cmd, (HTU21D_ADDR << 1) | I2C_MASTER_WRITE, true);
+  i2c_master_write_byte(cmd, (HTU21D_ADDR << 1) | I2C_MASTER_WRITE, 1);
   i2c_master_stop(cmd);
   ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
   if (ret != ESP_OK) {
@@ -152,8 +154,8 @@ int HTU21DController::getRaw(int command) const {
   // Sending command to request value.
   i2c_cmd_handle_t cmd = i2c_cmd_link_create();
   i2c_master_start(cmd);
-  i2c_master_write_byte(cmd, (HTU21D_ADDR << 1) | I2C_MASTER_WRITE, true);
-  i2c_master_write_byte(cmd, command, true);
+  i2c_master_write_byte(cmd, (HTU21D_ADDR << 1) | I2C_MASTER_WRITE, 1);
+  i2c_master_write_byte(cmd, command, 1);
   i2c_master_stop(cmd);
   ret = i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
   i2c_cmd_link_delete(cmd);
@@ -168,7 +170,7 @@ int HTU21DController::getRaw(int command) const {
   uint8_t msb, lsb, crc;
   cmd = i2c_cmd_link_create();
   i2c_master_start(cmd);
-  i2c_master_write_byte(cmd, (HTU21D_ADDR << 1) | I2C_MASTER_READ, true);
+  i2c_master_write_byte(cmd, (HTU21D_ADDR << 1) | I2C_MASTER_READ, 1);
   i2c_master_read_byte(cmd, &msb, (i2c_ack_type_t) 0x00);
   i2c_master_read_byte(cmd, &lsb, (i2c_ack_type_t) 0x00);
   i2c_master_read_byte(cmd, &crc, (i2c_ack_type_t) 0x01);
@@ -182,4 +184,5 @@ int HTU21DController::getRaw(int command) const {
 
   // TODO: Use CRC to ensure result is correct. (See specsheet p.14).
   return ((msb << 8) + lsb) & 0xFFFC;
+  return 0;
 }
