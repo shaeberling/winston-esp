@@ -6,6 +6,7 @@ idf_component_register(SRCS "winston_main.cpp"
                             "hall_effect_controller.cpp"
                             "htu21d_controller.cpp"
                             "bh1750_controller.cpp"
+                            "bme280_controller.cpp"
                             "locking.cpp"
                             "mongoose_server.cpp"
                             "mqtt_service.cpp"
@@ -30,5 +31,7 @@ idf_component_register(SRCS "winston_main.cpp"
                                 esp_http_server
                                 esp32-i2c-ssd1306-oled
                                 bh1750
+                                bme280
+                                esp_utils
                                 mongoose
                                 mqtt)
