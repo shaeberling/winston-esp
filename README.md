@@ -51,7 +51,6 @@ Inside winston-esp, cd into `main/proto` and run `nanopb_generator ./device_sett
 
 ### 0.5 (planned)
  - Add support for deep sleep mode to enable battery operation ⌛
- - Added support for Bosch BME270 temp/humidity sensor ⌛
  - Added support for Adafruit STEMMA Soil Sensor ⌛
 
 
@@ -68,6 +67,8 @@ Inside winston-esp, cd into `main/proto` and run `nanopb_generator ./device_sett
  - Added support for BH1750 ambient light sensor ✓
  - Added support for PIR motion sensors through interrupts ✓
  - Added support for MQTT, receiving and publishing ✓
+ - Added support for Bosch BME280 temp/humidity/pressure sensor ✓
+ - Fix: If connection becomes unavailable, reboot after timeout to recover ⌛
 
 ### 0.3.1 ✓
  - Fix for webserver becoming unavailable: Ask clients to not keep connections alive
