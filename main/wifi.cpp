@@ -25,13 +25,13 @@ ESP_EVENT_DEFINE_BASE(WINSTON_EVENT);
 /* FreeRTOS event group to signal when we are connected*/
 static EventGroupHandle_t s_wifi_event_group;
 
-/* The event group allows multiple bits for each event, but we only care about one event 
+/* The event group allows multiple bits for each event, but we only care about one event
  * - are we connected to the AP with an IP? */
 static const int WIFI_CONNECTED_BIT = BIT0;
 static const char *TAG = "winston-wifi";
 static int s_retry_num = 0;
 
-static void event_handler(void* arg, esp_event_base_t event_base, 
+static void event_handler(void* arg, esp_event_base_t event_base,
                           int32_t event_id, void* event_data) {
   if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
     ESP_LOGI(TAG, "WIFI: Connection Start");
@@ -83,7 +83,7 @@ void Wifi::connect(const std::string& ssid, const std::string& password) {
   strcpy((char*) wifi_config.sta.password, password.c_str());
 
   ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
-  ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
+  ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
   ESP_ERROR_CHECK(esp_wifi_start() );
 
   ESP_LOGI(TAG, "wifi_init_sta finished.");
