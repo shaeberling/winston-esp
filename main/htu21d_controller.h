@@ -10,7 +10,6 @@
 #include <string>
 #include <vector>
 
-// Controls relays that are active-low. */
 class HTU21DController : public Controller {
  public:
   HTU21DController(const std::string& id,
