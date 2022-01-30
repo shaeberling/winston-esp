@@ -1,0 +1,30 @@
+node_name: "dining-room"
+mqtt_server_url: "mqtt://192.168.86.200"
+time_zone: "PST8PDT"
+
+component {
+  name: "ssd1306"
+  gpio_pin: 22
+  gpio_pin: 21
+  id: "display"
+}
+
+component {
+  name: "htu21d"
+  gpio_pin: 17
+  gpio_pin: 16
+  id: "main"
+}
+
+component {
+  name: "bh1750"
+  gpio_pin: 32
+  gpio_pin: 33
+  id: "main"
+}
+
+component {
+  name: "pir"
+  gpio_pin: 4
+  id: "main"
+}

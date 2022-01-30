@@ -1,0 +1,23 @@
+node_name: "patio"
+mqtt_server_url: "mqtt://192.168.86.200"
+time_zone: "PST8PDT"
+
+component {
+  name: "bme280"
+  gpio_pin: 16
+  gpio_pin: 17
+  id: "main"
+}
+
+component {
+  name: "bh1750"
+  gpio_pin: 32
+  gpio_pin: 33
+  id: "main"
+}
+
+component {
+  name: "relay"
+  gpio_pin: 26
+  id: "leds"
+}

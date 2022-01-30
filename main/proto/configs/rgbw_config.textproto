@@ -1,0 +1,9 @@
+node_name: "rgbw"
+mqtt_server_url: "mqtt://192.168.86.200"
+time_zone: "PST8PDT"
+
+component {
+  name: "sk6812"
+  gpio_pin: 26
+  id: "leds"
+}
