@@ -16,7 +16,10 @@ SK6812Controller::SK6812Controller(const std::string& id,
     pin_(pin),
     locking_(locking),
     pixels_(NULL),
-    initialized_(false) {
+    initialized_(false),
+    frame_(0),
+    num_pixels_(10),
+    update_delay_millis_(80) {
 }
 
 // override
@@ -24,6 +27,13 @@ bool SK6812Controller::init() {
   pixels_ = new Adafruit_NeoPixel(10, pin_, NEO_GRBW + NEO_KHZ800);
   pixels_->clear();
   pixels_->show();
+
+  auto rt = xTaskCreatePinnedToCore(
+     SK6812Controller::startUpdateLoop, "led-updater", 5000, this, 1, NULL, 0);
+  if (rt != pdPASS) {
+   ESP_LOGE(TAG, "Cannot create RGBW update task.");
+   return false;
+  }
   return true;
 }
 
@@ -51,6 +61,11 @@ typedef struct {
 bool SK6812Controller::handleCommand(const std::string& data) {
   ESP_LOGD(TAG, "RGBW Command: %s", data.c_str());
 
+  return true;
+}
+
+// private
+void SK6812Controller::onUpdateLeds() {
   Color col[10];
   col[0] = {0, 0, 0, 150};
   col[1] = {150, 0, 0, 0};
@@ -63,13 +78,19 @@ bool SK6812Controller::handleCommand(const std::string& data) {
   col[8] = {0, 0, 250, 0};
   col[9] = {0, 0, 0, 150};
 
-  pixels_->clear();
-  for (int i = 0; i < 10; ++i) {
-    auto const c = col[i];
+  // pixels_->clear();
+  for (int i = 0; i < num_pixels_; ++i) {
+    auto const c = col[(frame_ + i) % num_pixels_];
     pixels_->setPixelColor(i, pixels_->Color(c.r, c.g, c.b, c.w));
   }
-  int i = 0;
   pixels_->show();
+  frame_ = (frame_ + 1) % num_pixels_;
+  vTaskDelay(update_delay_millis_ / portTICK_PERIOD_MS);
+}
 
-  return true;
+// private static
+void SK6812Controller::startUpdateLoop(void* p) {
+  while (true) {
+    static_cast<SK6812Controller*>(p)->onUpdateLeds();
+  }
 }

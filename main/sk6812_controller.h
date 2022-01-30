@@ -35,7 +35,13 @@ class SK6812Controller : public Controller {
 
   bool initialized_;
 
+  int frame_;
+  int num_pixels_;
+  int update_delay_millis_;
+
   bool handleCommand(const std::string& data);
+  void onUpdateLeds();
+  static void startUpdateLoop(void* p);
 };
 
 #endif /* _WINSTON_SK6812_CONTROLLER_H_ */
