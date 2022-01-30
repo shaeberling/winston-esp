@@ -45,6 +45,41 @@
 
 #include "Adafruit_NeoPixel.h"
 
+// Winston changes START
+#include <cstddef>   // NULL
+#include <stdlib.h>  // malloc, free, etc
+#include <string.h>  // memset
+
+// ESP functionality
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"  // vTaskDelay
+#include "driver/gpio.h"
+#include "driver/i2c.h"
+#include "esp_log.h"
+
+namespace {
+
+void pinMode(u_int16_t pin, gpio_mode_t mode) {
+  gpio_config_t io_conf;
+  // No interrupt.
+  io_conf.intr_type = GPIO_INTR_DISABLE;
+  // Bit mask of the pins.
+  io_conf.pin_bit_mask = 1ULL<<pin;
+  // Set input/output mode.
+  io_conf.mode = mode;
+  gpio_config(&io_conf);
+}
+
+void digitalWrite(u_int16_t pin, bool hi) {
+  gpio_set_level((gpio_num_t)pin, (hi ? 1 : 0));
+}
+
+};  // namespace
+
+// Winston changes END
+
+
+
 #if defined(TARGET_LPC1768)
 #include <time.h>
 #endif
@@ -118,8 +153,8 @@ Adafruit_NeoPixel::Adafruit_NeoPixel()
 */
 Adafruit_NeoPixel::~Adafruit_NeoPixel() {
   free(pixels);
-  if (pin >= 0)
-    pinMode(pin, INPUT);
+  if (pin >= 0) {}
+    pinMode(pin, GPIO_MODE_INPUT);
 }
 
 /*!
@@ -127,8 +162,8 @@ Adafruit_NeoPixel::~Adafruit_NeoPixel() {
 */
 void Adafruit_NeoPixel::begin(void) {
   if (pin >= 0) {
-    pinMode(pin, OUTPUT);
-    digitalWrite(pin, LOW);
+    pinMode(pin, GPIO_MODE_OUTPUT);
+    digitalWrite(pin, false);
   }
   begun = true;
 }
@@ -266,8 +301,12 @@ void Adafruit_NeoPixel::show(void) {
   // subsequent round of data until the latch time has elapsed. This
   // allows the mainline code to start generating the next frame of data
   // rather than stalling for the latch.
-  while (!canShow())
-    ;
+
+  // Winston change: Use vTaskDelay, the native ESP-IDF way to wait!
+  vTaskDelay(300 / portTICK_PERIOD_MS);
+  //while (!canShow())
+  //  ;
+
     // endTime is a private member (rather than global var) so that multiple
     // instances on different pins can be quickly issued in succession (each
     // instance doesn't delay the next).
@@ -284,7 +323,7 @@ void Adafruit_NeoPixel::show(void) {
 
     // NRF52 may use PWM + DMA (if available), may not need to disable interrupt
 #if !(defined(NRF52) || defined(NRF52_SERIES))
-  noInterrupts(); // Need 100% focus on instruction timing
+//  noInterrupts(); // Need 100% focus on instruction timing
 #endif
 
 #if defined(__AVR__)
@@ -3032,10 +3071,11 @@ if(is800KHz) {
   // END ARCHITECTURE SELECT ------------------------------------------------
 
 #if !(defined(NRF52) || defined(NRF52_SERIES))
-  interrupts();
+  // interrupts();
 #endif
 
-  endTime = micros(); // Save EOD time for latch on next call
+// Winston change: endTime does not seem to be used here.
+//  endTime = micros(); // Save EOD time for latch on next call
 }
 
 /*!
@@ -3045,11 +3085,11 @@ if(is800KHz) {
 */
 void Adafruit_NeoPixel::setPin(int16_t p) {
   if (begun && (pin >= 0))
-    pinMode(pin, INPUT); // Disable existing out pin
+    pinMode(p, GPIO_MODE_INPUT); // Disable existing out pin
   pin = p;
   if (begun) {
-    pinMode(p, OUTPUT);
-    digitalWrite(p, LOW);
+    pinMode(p, GPIO_MODE_OUTPUT);
+    digitalWrite(p, false);
   }
 #if defined(__AVR__)
   port = portOutputRegister(digitalPinToPort(p));

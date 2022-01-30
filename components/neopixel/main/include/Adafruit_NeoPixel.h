@@ -36,6 +36,14 @@
 #ifndef ADAFRUIT_NEOPIXEL_H
 #define ADAFRUIT_NEOPIXEL_H
 
+// Changes for Winston
+// Force ESP32 mode
+#define ESP32
+// Include uint types
+#include <stdint.h>
+// Also removed all pgm/PROGMEM references. Not needed in ESP-IDF.
+// See e.g. pb.h how they handle this with macros.
+
 #ifdef ARDUINO
 #if (ARDUINO >= 100)
 #include <Arduino.h>
@@ -160,7 +168,7 @@ for x in range(256):
     print("{:3},".format(int((math.sin(x/128.0*math.pi)+1.0)*127.5+0.5))),
     if x&15 == 15: print
 */
-static const uint8_t PROGMEM _NeoPixelSineTable[256] = {
+static const uint8_t _NeoPixelSineTable[256] = {
     128, 131, 134, 137, 140, 143, 146, 149, 152, 155, 158, 162, 165, 167, 170,
     173, 176, 179, 182, 185, 188, 190, 193, 196, 198, 201, 203, 206, 208, 211,
     213, 215, 218, 220, 222, 224, 226, 228, 230, 232, 234, 235, 237, 238, 240,
@@ -188,7 +196,7 @@ for x in range(256):
     print("{:3},".format(int(math.pow((x)/255.0,gamma)*255.0+0.5))),
     if x&15 == 15: print
 */
-static const uint8_t PROGMEM _NeoPixelGammaTable[256] = {
+static const uint8_t _NeoPixelGammaTable[256] = {
     0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
     0,   0,   0,   0,   0,   0,   0,   0,   0,   1,   1,   1,   1,   1,   1,
     1,   1,   1,   1,   1,   1,   2,   2,   2,   2,   2,   2,   2,   2,   3,
@@ -245,28 +253,28 @@ public:
     @return  1 or true if show() will start sending immediately, 0 or false
              if show() would block (meaning some idle time is available).
   */
-  bool canShow(void) {
-    // It's normal and possible for endTime to exceed micros() if the
-    // 32-bit clock counter has rolled over (about every 70 minutes).
-    // Since both are uint32_t, a negative delta correctly maps back to
-    // positive space, and it would seem like the subtraction below would
-    // suffice. But a problem arises if code invokes show() very
-    // infrequently...the micros() counter may roll over MULTIPLE times in
-    // that interval, the delta calculation is no longer correct and the
-    // next update may stall for a very long time. The check below resets
-    // the latch counter if a rollover has occurred. This can cause an
-    // extra delay of up to 300 microseconds in the rare case where a
-    // show() call happens precisely around the rollover, but that's
-    // neither likely nor especially harmful, vs. other code that might
-    // stall for 30+ minutes, or having to document and frequently remind
-    // and/or provide tech support explaining an unintuitive need for
-    // show() calls at least once an hour.
-    uint32_t now = micros();
-    if (endTime > now) {
-      endTime = now;
-    }
-    return (now - endTime) >= 300L;
-  }
+  // bool canShow(void) {
+  //   // It's normal and possible for endTime to exceed micros() if the
+  //   // 32-bit clock counter has rolled over (about every 70 minutes).
+  //   // Since both are uint32_t, a negative delta correctly maps back to
+  //   // positive space, and it would seem like the subtraction below would
+  //   // suffice. But a problem arises if code invokes show() very
+  //   // infrequently...the micros() counter may roll over MULTIPLE times in
+  //   // that interval, the delta calculation is no longer correct and the
+  //   // next update may stall for a very long time. The check below resets
+  //   // the latch counter if a rollover has occurred. This can cause an
+  //   // extra delay of up to 300 microseconds in the rare case where a
+  //   // show() call happens precisely around the rollover, but that's
+  //   // neither likely nor especially harmful, vs. other code that might
+  //   // stall for 30+ minutes, or having to document and frequently remind
+  //   // and/or provide tech support explaining an unintuitive need for
+  //   // show() calls at least once an hour.
+  //   uint32_t now = micros();
+  //   if (endTime > now) {
+  //     endTime = now;
+  //   }
+  //   return (now - endTime) >= 300L;
+  // }
   /*!
     @brief   Get a pointer directly to the NeoPixel data buffer in RAM.
              Pixel data is stored in a device-native format (a la the NEO_*
@@ -307,7 +315,7 @@ public:
              output is often used for pixel brightness in animation effects.
   */
   static uint8_t sine8(uint8_t x) {
-    return pgm_read_byte(&_NeoPixelSineTable[x]); // 0-255 in, 0-255 out
+    return _NeoPixelSineTable[x]; // 0-255 in, 0-255 out
   }
   /*!
     @brief   An 8-bit gamma-correction function for basic pixel brightness
@@ -321,7 +329,7 @@ public:
              need to provide your own gamma-correction function instead.
   */
   static uint8_t gamma8(uint8_t x) {
-    return pgm_read_byte(&_NeoPixelGammaTable[x]); // 0-255 in, 0-255 out
+    return _NeoPixelGammaTable[x]; // 0-255 in, 0-255 out
   }
   /*!
     @brief   Convert separate red, green and blue values into a single
