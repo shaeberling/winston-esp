@@ -15,6 +15,7 @@
 #include "pir_controller.h"
 #include "reed_controller.h"
 #include "relay_controller.h"
+#include "sk6812_controller.h"
 #include "system_controller.h"
 #include "time_controller.h"
 #include "ui_controller.h"
@@ -44,6 +45,8 @@ Controller* ControllerFactory::createController(const ComponentProto& comp) {
     return new BME280Controller(comp.id, gpio_0, gpio_1, locking_);
   } else if (strcmp(comp.name, "bh1750") == 0) {
     return new BH1750Controller(comp.id, gpio_0, gpio_1, locking_);
+  } else if (strcmp(comp.name, "sk6812") == 0) {
+    return new SK6812Controller(comp.id, gpio_0, locking_);
   } else if (strcmp(comp.name, "esp-temp") == 0) {
     return new EspTempController(comp.id);
   } else if (strcmp(comp.name, "ssd1306") == 0) {

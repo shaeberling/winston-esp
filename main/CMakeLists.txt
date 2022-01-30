@@ -1,4 +1,4 @@
-idf_component_register(SRCS "winston_main.cpp"
+idf_component_register(SRCS "sk6812_controller.cpp" "winston_main.cpp"
                             "controller_factory.cpp"
                             "control_hub.cpp"
                             "display_controller.cpp"
@@ -7,6 +7,7 @@ idf_component_register(SRCS "winston_main.cpp"
                             "htu21d_controller.cpp"
                             "bh1750_controller.cpp"
                             "bme280_controller.cpp"
+                            "sk6812_controller.cpp"
                             "locking.cpp"
                             "mongoose_server.cpp"
                             "mqtt_service.cpp"
@@ -34,4 +35,5 @@ idf_component_register(SRCS "winston_main.cpp"
                                 bme280
                                 esp_utils
                                 mongoose
-                                mqtt)
+                                mqtt
+                                neopixel)
