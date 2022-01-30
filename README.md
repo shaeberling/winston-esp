@@ -50,12 +50,13 @@ Inside winston-esp, cd into `main/proto` and run `nanopb_generator ./device_sett
  - OTA support (no more plugging it in to update) ⌛
 
 ### 0.5 (planned)
+ - Overarching goal: Enable door/window/plant sensors that are off the grid.
+ - Add support for CO2/particle sensor for air quality measurements. ⌛
  - Add support for deep sleep mode to enable battery operation ⌛
- - Added support for Adafruit STEMMA Soil Sensor ⌛
-
+ - Add support for Adafruit STEMMA Soil Sensor ⌛
 
 ### 0.4  (in progress)
- - Overarching goal: Dynamic config, MQTT, internal events, feature complete for physical box 1.0.
+ - Overarching goal: Dynamic config, MQTT, internal events, feature complete for physical box 1.0 as well as patio box. ✓
  - Revamped internal event system for modules to publish updates to both MQTT as well as a connected screen ✓
  - Node set-up is controlled by a protocol buffer. This enables nodes to be different by changing their embedded configuration instead of re-compiling. ✓
  - Move timezone setting to be dynamic, instead of in code ✓
@@ -68,6 +69,7 @@ Inside winston-esp, cd into `main/proto` and run `nanopb_generator ./device_sett
  - Added support for PIR motion sensors through interrupts ✓
  - Added support for MQTT, receiving and publishing ✓
  - Added support for Bosch BME280 temp/humidity/pressure sensor ✓
+ - Added support for NeoPixel SK6812 RGBW LED light strips ✓
  - Fix: If connection becomes unavailable, reboot after timeout to recover ⌛
 
 ### 0.3.1 ✓
