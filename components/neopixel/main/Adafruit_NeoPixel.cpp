@@ -303,7 +303,8 @@ void Adafruit_NeoPixel::show(void) {
   // rather than stalling for the latch.
 
   // Winston change: Use vTaskDelay, the native ESP-IDF way to wait!
-  vTaskDelay(300 / portTICK_PERIOD_MS);
+  //                 Actually, why is there a delay here?! Removed!
+  // vTaskDelay(300 / portTICK_PERIOD_MS);
   //while (!canShow())
   //  ;
 
