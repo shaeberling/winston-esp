@@ -20,7 +20,7 @@ namespace {
 
 ESP_EVENT_DEFINE_BASE(WINSTON_EVENT);
 
-#define MAXIMUM_RETRY  5
+#define MAXIMUM_RETRY  10
 
 /* FreeRTOS event group to signal when we are connected*/
 static EventGroupHandle_t s_wifi_event_group;
@@ -42,11 +42,12 @@ static void event_handler(void* arg, esp_event_base_t event_base,
       esp_wifi_connect();
       xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
       s_retry_num++;
-      ESP_LOGI(TAG, "retry to connect to the AP");
-    } else {
-      ESP_LOGI(TAG,"connect to the AP failed. Rebooting in 2 minutes.");
-      auto delay_millis = 2 * 60 * 1000;
+      auto delay_millis = 5 * 1000;
       vTaskDelay(delay_millis / portTICK_PERIOD_MS);
+      ESP_LOGI(TAG, "Retrying to connect to the AP, %d of %d tries",
+                    s_retry_num, MAXIMUM_RETRY);
+    } else {
+      ESP_LOGI(TAG, "Connection to the AP failed. Rebooting...");
       esp_restart();
     }
   } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
@@ -87,5 +88,5 @@ void Wifi::connect(const std::string& ssid, const std::string& password) {
   ESP_ERROR_CHECK(esp_wifi_start() );
 
   ESP_LOGI(TAG, "wifi_init_sta finished.");
-  ESP_LOGI(TAG, "connect to ap SSID:%s", ssid.c_str());
+  ESP_LOGI(TAG, "Connecting to Wifi SSID: %s", ssid.c_str());
 }
