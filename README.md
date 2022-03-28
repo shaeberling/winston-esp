@@ -70,7 +70,7 @@ Inside winston-esp, cd into `main/proto` and run `nanopb_generator ./device_sett
  - Added support for MQTT, receiving and publishing ✓
  - Added support for Bosch BME280 temp/humidity/pressure sensor ✓
  - Added support for NeoPixel SK6812 RGBW LED light strips ✓
- - Fix: If connection becomes unavailable, reboot after timeout to recover ⌛
+ - Fix: If connection becomes unavailable, reboot after timeout to recover ✓
 
 ### 0.3.1 ✓
  - Fix for webserver becoming unavailable: Ask clients to not keep connections alive
