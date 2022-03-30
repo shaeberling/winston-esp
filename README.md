@@ -54,6 +54,7 @@ Inside winston-esp, cd into `main/proto` and run `nanopb_generator ./device_sett
  - Add support for CO2/particle sensor for air quality measurements. ⌛
  - Add support for deep sleep mode to enable battery operation ⌛
  - Add support for Adafruit STEMMA Soil Sensor ⌛
+ - Add support for power meters (clamp) ⌛
 
 ### 0.4  (in progress)
  - Overarching goal: Dynamic config, MQTT, internal events, feature complete for physical box 1.0 as well as patio box. ✓
