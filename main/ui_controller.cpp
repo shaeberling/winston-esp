@@ -32,6 +32,9 @@ UiController::UiController(DisplayController* display,
       system_(system),
       initiated_(false),
       connection_attempts_(0) {
+  // Initialize the display early so it works even without Wifi.
+  // Winston only initializes controllers AFTER Wifi is already established.
+  this->init();
 }
 
 // override
@@ -67,7 +70,7 @@ bool UiController::init() {
 }
 
 // private
-void UiController::onEvent(esp_event_base_t event_base, 
+void UiController::onEvent(esp_event_base_t event_base,
                            int32_t event_id, void* event_data) {
   if (event_base == WINSTON_EVENT && event_id == SENSOR_EVENT) {
     auto* update = static_cast<SensorUpdate*>(event_data);
@@ -111,7 +114,7 @@ void UiController::registerEvent(esp_event_base_t event_base, int32_t event_id) 
 }
 
 // private static
-void UiController::event_handler(void* arg, esp_event_base_t event_base, 
+void UiController::event_handler(void* arg, esp_event_base_t event_base,
                                  int32_t event_id, void* event_data) {
   static_cast<UiController*>(arg)->onEvent(event_base, event_id, event_data);
 }
