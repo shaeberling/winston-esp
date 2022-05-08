@@ -1,5 +1,5 @@
 node_name: "patio"
-mqtt_server_url: "mqtt://192.168.86.200"
+mqtt_server_url: "mqtt://192.168.1.200"
 time_zone: "PST8PDT"
 
 component {
